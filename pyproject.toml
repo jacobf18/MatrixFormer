@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matrixformer"
+version = "0.1.0"
+description = "Frozen MatrixFormer+ inference for numerical matrix completion"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "torch>=2.4,<3",
+    "huggingface-hub>=0.27,<2",
+]
+
+[project.urls]
+Repository = "https://github.com/jacobf18/MatrixFormer"
+Checkpoints = "https://huggingface.co/Tabimpute/TabImpute"
+Paper = "https://github.com/jacobf18/MatrixFormerPaper"
+
+[project.scripts]
+matrixformer = "matrixformer.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+matrixformer = ["assets/*.pt", "assets/*.json"]

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+.DS_Store
+checkpoints/
+*.npy
+*.npz
+*.pth
+*.ckpt
+*.safetensors
+*.log
+huggingface_token.txt
