@@ -1,4 +1,4 @@
-# MatrixFormer+
+# MatrixFormer
 
 Fill missing entries in numerical matrices with pretrained transformers.
 MatrixFormer+ combines a general-purpose model and a recommender-system model,
