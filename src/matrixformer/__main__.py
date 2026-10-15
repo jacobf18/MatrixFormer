@@ -11,15 +11,33 @@ from .imputer import prepare_matrix
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Frozen MatrixFormer+ matrix completion")
-    parser.add_argument("--model", choices=("plus", "impute"), default="plus")
-    parser.add_argument("--input", type=Path, help="2D numeric .npy array; missing entries are NaN")
-    parser.add_argument("--output", type=Path, help="Completed .npy array")
-    parser.add_argument("--device", default="cpu")
-    parser.add_argument("--precision", choices=("amp_bfloat16", "float32"), default="amp_bfloat16")
+    parser = argparse.ArgumentParser(
+        description="Frozen MatrixFormer+ matrix completion",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--model", choices=("plus", "impute"), default="plus",
+        help="Two-expert blend (plus) or general expert only (impute)",
+    )
+    parser.add_argument(
+        "--input", type=Path,
+        help="2D numeric .npy array with NaN for missing entries; omitted runs a synthetic demo",
+    )
+    parser.add_argument(
+        "--output", type=Path,
+        help="Save completed .npy array, overwriting existing output; omitted prints only a summary",
+    )
+    parser.add_argument("--device", default="cpu", help="Inference device: cpu, cuda, or cuda:N")
+    parser.add_argument(
+        "--precision", choices=("amp_bfloat16", "float32"), default="amp_bfloat16",
+        help="Inference precision; use float32 on hardware without BF16 support",
+    )
     parser.add_argument("--max-rows", type=int, default=2000, help="Context rows; 0 uses the full axis")
     parser.add_argument("--max-cols", type=int, default=1000, help="Context columns; 0 uses the full axis")
-    parser.add_argument("--local-dir", type=Path, help="Offline bundle root, or download destination")
+    parser.add_argument(
+        "--local-dir", type=Path,
+        help="Existing offline bundle root; with --download-only, the download destination",
+    )
     parser.add_argument("--cache-dir", type=Path, help="Override the Hugging Face cache directory")
     parser.add_argument(
         "--local-files-only", action="store_true",
