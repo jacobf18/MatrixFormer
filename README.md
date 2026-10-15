@@ -9,7 +9,7 @@ normalization, and blending code lives here. It does not import `tabimpute`,
 depend on the `tabular` repository, or contain datasets, training jobs, or
 benchmark infrastructure.
 
-- [Pretrained weights](https://huggingface.co/Tabimpute/TabImpute)
+- [Hugging Face weights and configs](https://huggingface.co/Tabimpute/TabImpute)
 - [Paper source](https://github.com/jacobf18/MatrixFormerPaper)
 
 ## Install
@@ -45,10 +45,16 @@ print(completed)
 print(model.last_decision)
 ```
 
-The first call downloads about 624 MB of weights and the matching configs from
-Hugging Face. Downloads use a pinned release and are checked against SHA-256
-hashes before loading. The models are public; no token is required. Later calls
-reuse the Hugging Face cache.
+When `local_dir` is omitted, `MatrixFormerPlus.from_pretrained()` automatically
+downloads both experts (about 624 MB of weights) and their matching configs from
+[Tabimpute/TabImpute on Hugging Face](https://huggingface.co/Tabimpute/TabImpute).
+The CLI does the same by default; no model paths or separate download step are
+needed. Downloads use a pinned release and are checked against SHA-256 hashes
+before loading. The models are public; no token is required. Later calls reuse
+the Hugging Face cache. Use `cache_dir` in Python or `--cache-dir` on the CLI to
+choose its location. Offline mode (`local_files_only=True` or
+`--local-files-only`) requires the files to be cached already; see Offline Use
+below for loading a local bundle.
 
 For GPU inference, use `device="cuda"` or `device="cuda:1"`. The default precision
 is `amp_bfloat16`, matching the published inference recipe. Use
@@ -203,3 +209,19 @@ across BF16 autocast and float32, including window overlaps, missing axes, and
 streaming boundaries. An installed wheel also passes offline inference with
 network access and unrelated imports blocked. These are implementation checks,
 not benchmark accuracy claims; GPU parity has not been tested in this extraction.
+
+## Citation
+
+If you use MatrixFormer, please cite [our paper](https://arxiv.org/abs/2610.06751):
+
+```bibtex
+@misc{saha2026matrixformerfoundationmodelmatrix,
+  title={MatrixFormer: A Foundation Model for Matrix Completion},
+  author={Dwaipayan Saha and Jacob Feitelberg and Kyuseong Choi and Raaz Dwivedi and Anish Agarwal},
+  year={2026},
+  eprint={2610.06751},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2610.06751}
+}
+```
