@@ -374,13 +374,10 @@ not benchmark accuracy claims; GPU parity has not been tested in this extraction
 If you use MatrixFormer, please cite [our paper](https://arxiv.org/abs/2610.06751):
 
 ```bibtex
-@misc{saha2026matrixformerfoundationmodelmatrix,
+@article{saha2026matrixformer,
   title={MatrixFormer: A Foundation Model for Matrix Completion},
-  author={Dwaipayan Saha and Jacob Feitelberg and Kyuseong Choi and Raaz Dwivedi and Anish Agarwal},
-  year={2026},
-  eprint={2610.06751},
-  archivePrefix={arXiv},
-  primaryClass={cs.LG},
-  url={https://arxiv.org/abs/2610.06751}
+  author={Saha, Dwaipayan and Feitelberg, Jacob and Choi, Kyuseong and Dwivedi, Raaz and Agarwal, Anish},
+  journal={arXiv preprint arXiv:2610.06751},
+  year={2026}
 }
 ```
