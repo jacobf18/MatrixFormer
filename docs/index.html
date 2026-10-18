@@ -325,12 +325,6 @@ td.num { font-family: "JetBrains Mono", monospace; font-size: 13.5px; }
 :root { --mf: #2a78d6; --alt: #eb6834; --base: #85857f; --hl-row: rgba(42,120,214,.07); }
 :root[data-theme="dark"] { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); } }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 8px 0 8px; }
-@media (max-width: 860px) { .stats { grid-template-columns: 1fr 1fr; } }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
-.stat-label { font-size: 13.5px; color: var(--muted); }
-.stat-value { font-size: 30px; font-weight: 600; letter-spacing: -.02em; margin: 2px 0; font-variant-numeric: proportional-nums; }
-.stat-delta { font-size: 12.5px; color: var(--muted); }
 .r-h { font-size: 20px; margin: 44px 0 8px; }
 .viz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px 14px; margin-top: 14px; }
 @media (max-width: 520px) { .viz-card { padding: 14px 12px 10px; } }
@@ -463,29 +457,6 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   <div class="wrap">
     <h2>Results</h2>
     <p class="sub">One set of frozen weights, with no fine-tuning, evaluated across four domains: tabular imputation, causal inference on panel data, recommender systems and language-model evaluation. All numbers are from the <a href="https://arxiv.org/abs/2610.06751">paper</a>. Hover any chart for exact values.</p>
-
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-label">UCI imputation error</div>
-        <div class="stat-value">0.998</div>
-        <div class="stat-delta">NRMSE, vs 1.172 for ICE, the next best</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">MovieLens 100K rating error</div>
-        <div class="stat-value">0.887</div>
-        <div class="stat-delta">RMSE, vs 0.900 for SVD</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Causal panels won</div>
-        <div class="stat-value">5 of 6</div>
-        <div class="stat-delta">lowest score across three placebo benchmarks and two metrics</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Faster than TabImpute</div>
-        <div class="stat-value">107×</div>
-        <div class="stat-delta">at 1,024 × 10, on one H200</div>
-      </div>
-    </div>
 
     <!-- Imputation -->
     <h3 class="r-h">Tabular imputation</h3>
