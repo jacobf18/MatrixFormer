@@ -7,6 +7,19 @@
 <meta name="description" content="MatrixFormer: a pretrained transformer foundation model for zero-shot matrix completion.">
 <meta property="og:title" content="MatrixFormer: A Foundation Model for Matrix Completion">
 <meta property="og:description" content="Fill missing entries in numerical matrices with pretrained transformers. No training or fine-tuning.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jacobf18.github.io/MatrixFormer/">
+<meta property="og:image" content="https://jacobf18.github.io/MatrixFormer/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MatrixFormer logo: a 3 by 3 grid with one row and column highlighted, beside the title MatrixFormer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MatrixFormer: A Foundation Model for Matrix Completion">
+<meta name="twitter:description" content="Fill missing entries in numerical matrices with pretrained transformers. No training or fine-tuning.">
+<meta name="twitter:image" content="https://jacobf18.github.io/MatrixFormer/assets/og-image.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -91,7 +104,9 @@ nav.top {
   border-bottom: 1px solid var(--border);
 }
 nav.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
-nav.top .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+nav.top .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 9px; }
+nav.top .brand:hover { text-decoration: none; }
+nav.top .brand img { display: block; }
 nav.top .links { display: flex; gap: 18px; margin-left: auto; font-size: 14px; white-space: nowrap; }
 @media (max-width: 420px) { nav.top .links { gap: 14px; } nav.top .wrap { gap: 12px; } }
 nav.top .links a { color: var(--muted); }
@@ -306,6 +321,46 @@ td.num { font-family: "JetBrains Mono", monospace; font-size: 13.5px; }
 #specSvg text { font-family: Inter, sans-serif; fill: var(--muted); font-size: 11px; }
 #specSvg { max-width: 400px; margin: 0 auto; display: block; }
 
+/* Results */
+:root { --mf: #2a78d6; --alt: #eb6834; --base: #85857f; --hl-row: rgba(42,120,214,.07); }
+:root[data-theme="dark"] { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); } }
+.r-h { font-size: 20px; margin: 44px 0 8px; }
+.viz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px 14px; margin-top: 14px; }
+@media (max-width: 520px) { .viz-card { padding: 14px 12px 10px; } }
+.viz-controls { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 8px; }
+.viz-controls .tabs { margin-bottom: 0; background: var(--surface-2); border-radius: 9px; padding: 3px; }
+.viz-controls .tab { padding: 5px 11px; font-size: 13px; }
+.viz-title { font-size: 13.5px; color: var(--muted); margin: 6px 0 2px; }
+.viz svg, .multiples svg { display: block; width: 100%; overflow: visible; }
+.viz text, .multiples text { font-family: Inter, sans-serif; font-size: 12px; fill: var(--muted); }
+.viz text.lbl, .multiples text.lbl { fill: var(--text); }
+.viz text.val, .multiples text.val { fill: var(--text); font-variant-numeric: tabular-nums; }
+.viz text.hl, .multiples text.hl { font-weight: 600; }
+.multiples { display: grid; gap: 16px 24px; }
+.multiples.m2 { grid-template-columns: 1fr 1fr; }
+.multiples.m3 { grid-template-columns: repeat(3, 1fr); }
+.multiples.m4 { grid-template-columns: 1fr 1fr; }
+@media (max-width: 760px) { .multiples.m2, .multiples.m3, .multiples.m4 { grid-template-columns: 1fr; } }
+.panel-title { font-size: 13.5px; font-weight: 600; margin: 4px 0 2px; }
+.viz-cap { font-size: 13px; color: var(--muted); margin: 10px 0 6px; }
+.viz-legend { margin-bottom: 8px; }
+.key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; }
+.viz-table summary { font-size: 13px; color: var(--accent); cursor: pointer; padding: 4px 0; }
+.viz-table table { font-size: 13px; margin-top: 8px; }
+.viz-table th, .viz-table td { padding: 6px 10px; }
+.viz-table .tw { overflow-x: auto; }
+.viz-tip {
+  position: fixed; z-index: 50; pointer-events: none;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 12.5px; line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 260px;
+}
+.viz-tip b { font-weight: 600; }
+.viz-tip .row { display: flex; align-items: center; gap: 6px; }
+.viz-tip .row i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.viz-tip .num { font-variant-numeric: tabular-nums; margin-left: auto; padding-left: 12px; }
+
 footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 13.5px; }
 footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
@@ -317,9 +372,10 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 <nav class="top">
   <div class="wrap">
-    <a class="brand" href="#">MatrixFormer</a>
+    <a class="brand" href="#"><img src="assets/logo-64.png" alt="" width="26" height="26">MatrixFormer</a>
     <div class="links">
-      <a href="#how">How it works</a>
+      <a href="#results">Results</a>
+      <a href="#how" class="opt">How it works</a>
       <a href="#training" class="opt">Training</a>
       <a href="#blend" class="opt">MatrixFormer+</a>
       <a href="#quickstart">Quickstart</a>
@@ -396,6 +452,95 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     </div>
   </div>
 </section>
+
+<section id="results">
+  <div class="wrap">
+    <h2>Results</h2>
+    <p class="sub">One set of frozen weights, with no fine-tuning, evaluated across four domains: tabular imputation, causal inference on panel data, recommender systems and language-model evaluation. All numbers are from the <a href="https://arxiv.org/abs/2610.06751">paper</a>. Hover any chart for exact values.</p>
+
+    <!-- Imputation -->
+    <h3 class="r-h">Tabular imputation</h3>
+    <p class="prose">Two suites, scored on masked cells with column-normalized RMSE (NRMSE). <b>MissBench</b>: 42 OpenML datasets under 11 missingness mechanisms at 40% missingness. <b>UCI</b>: 12 datasets under MCAR, MAR and MNAR at 10–50% missingness, with 10 repeats each. MatrixFormer has the lowest overall error on both.</p>
+    <div class="viz-card">
+      <div class="viz-controls">
+        <div class="tabs" role="tablist" id="impSuite">
+          <button class="tab" role="tab" aria-selected="true" data-key="missbench">MissBench</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="uci">UCI</button>
+        </div>
+        <div class="tabs" role="tablist" id="impPat">
+          <button class="tab" role="tab" aria-selected="true" data-key="overall">Overall</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="MCAR">MCAR</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="MAR">MAR</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="MNAR">MNAR</button>
+        </div>
+      </div>
+      <div class="viz-title" id="impTitle"></div>
+      <div class="viz" id="impChart"></div>
+      <p class="viz-cap">Lower is better. Whiskers are 95% intervals from 10,000 dataset-bootstrap resamples. Rows are sorted by overall NRMSE, and that order is kept across patterns. † marks incomplete coverage.</p>
+      <details class="viz-table"><summary>Show data table</summary><div id="impTable"></div></details>
+    </div>
+
+    <!-- Causal -->
+    <h3 class="r-h">Causal inference: counterfactual completion</h3>
+    <p class="prose">Estimating a treatment effect means predicting what treated units <i>would</i> have done untreated. On placebo panels where the true effect is zero, we hide the treated block and score its completion. Benchmarks: CPS state wage panels, the Kansas semi-synthetic design, and the California smoking donor pool. Scores are min–max normalized within each draw across the seven methods: 0 is best and 1 is worst.</p>
+    <div class="viz-card">
+      <div class="viz-controls">
+        <div class="tabs" role="tablist" id="causMetric">
+          <button class="tab" role="tab" aria-selected="true" data-key="rmse">Treated-block RMSE</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="tau">Effect error |τ̂ − τ|</button>
+        </div>
+      </div>
+      <div class="multiples m3" id="causChart"></div>
+      <p class="viz-cap">Lower is better. Means over draws, with the designs within a benchmark weighted equally. MatrixFormer is lowest in five of six panels; HyperImpute is lowest for the Kansas effect error (0.119 vs 0.125).</p>
+      <details class="viz-table"><summary>Show data table</summary><div id="causTable"></div></details>
+    </div>
+
+    <!-- RecSys -->
+    <h3 class="r-h">Recommender systems</h3>
+    <p class="prose">Rating prediction on sparse user–item matrices, with a frozen 80/20 rating holdout. Baselines are Cornac's collaborative-filtering models. RMSE and MAE are in rating units, averaged over test users. MatrixFormer is lowest on both datasets and both metrics; on Netflix, its RMSE margin over SVD is small.</p>
+    <div class="viz-card">
+      <div class="viz-controls">
+        <div class="tabs" role="tablist" id="recData">
+          <button class="tab" role="tab" aria-selected="true" data-key="ml">MovieLens 100K</button>
+          <button class="tab" role="tab" aria-selected="false" data-key="nf">Netflix small</button>
+        </div>
+      </div>
+      <div class="multiples m2" id="recChart"></div>
+      <p class="viz-cap">Lower is better. The axis is zoomed to separate the top methods. BPR is trained for ranking, not rating calibration, so it falls off the scale; its value is shown at the edge.</p>
+      <details class="viz-table"><summary>Show data table</summary><div id="recTable"></div></details>
+    </div>
+
+    <!-- LLM -->
+    <h3 class="r-h">Language-model benchmark completion</h3>
+    <p class="prose">Rows are language models and columns are benchmark tasks. For a held-out model we reveal its scores on <i>k</i> tasks chosen by greedy mutual information, then predict the rest. The baseline is the Gaussian conditional-mean estimator from the task-selection release. MatrixFormer is higher on MTEB, Merged and BenchPress, with the largest gains on the two sparsest matrices. The Gaussian estimator is slightly higher on dense MMLU.</p>
+    <div class="viz-card">
+      <div class="legend viz-legend">
+        <span><i class="key" style="background:var(--mf)"></i>MatrixFormer</span>
+        <span><i class="key" style="background:var(--alt)"></i>Gaussian conditional mean</span>
+      </div>
+      <div class="multiples m4" id="llmChart"></div>
+      <p class="viz-cap">R² on held-out scores, higher is better, averaged over ten model folds. Each panel has its own y-axis. Observed fractions: MTEB 77%, MMLU 100%, Merged 31%, BenchPress 34%.</p>
+      <details class="viz-table"><summary>Show data table</summary><div id="llmTable"></div></details>
+    </div>
+
+    <!-- Runtime -->
+    <h3 class="r-h">Inference speed</h3>
+    <p class="prose">TabImpute builds a separate prediction problem for every missing entry. MatrixFormer completes the whole matrix in one forward pass. With 10 columns, the speedup grows from 2.1× at 16 rows to 107× at 1,024 rows: 4.17 s for TabImpute vs 0.039 s for MatrixFormer-Impute.</p>
+    <div class="viz-card">
+      <div class="legend viz-legend">
+        <span><i class="key" style="background:var(--mf)"></i>MatrixFormer-Impute</span>
+        <span><i class="key" style="background:var(--alt)"></i>TabImpute (legacy)</span>
+      </div>
+      <div class="viz" id="rtChart"></div>
+      <p class="viz-cap">Median runtime on one NVIDIA H200, 10 columns, both axes logarithmic.</p>
+      <details class="viz-table"><summary>Show data table</summary><div id="rtTable"></div></details>
+    </div>
+
+    <p class="figcap" style="margin-top:20px">The paper's benchmark runs use task-specific preprocessing that this package does not include (for example, bias centering for ratings), so running the package's generic recipe will not reproduce every number exactly. See <a href="#quickstart">Good to know</a>.</p>
+  </div>
+</section>
+
+<div class="viz-tip" id="vizTip" hidden></div>
 
 <section id="how">
   <div class="wrap">
@@ -1285,6 +1430,237 @@ completed = model.<span class="tk-f">impute</span>(matrix)
     });
   })();
 
+  var IMP = {"missbench":{"overall":[["MatrixFormer",1.58,1.36,1.877,false],["TabImpute (legacy)",1.585,1.405,1.817,false],["MissForest",1.966,1.565,2.612,false],["K-NN",2.022,1.636,2.556,false],["HyperImpute",2.067,1.53,2.863,false],["MICE",2.215,1.521,3.248,true],["ICE",2.265,1.6,3.28,false],["SoftImpute",2.289,1.755,3.041,false],["MIWAE",2.373,1.956,2.959,false],["GAIN",3.065,2.078,4.689,false]],"MCAR":[["MatrixFormer",0.866,0.784,0.956,false],["TabImpute (legacy)",0.819,0.756,0.881,false],["MissForest",1.018,0.793,1.338,false],["K-NN",0.943,0.842,1.07,false],["HyperImpute",0.969,0.818,1.167,false],["MICE",1.002,0.776,1.349,false],["ICE",1.215,0.883,1.744,false],["SoftImpute",1.007,0.907,1.129,false],["MIWAE",1.235,1.142,1.373,false],["GAIN",1.246,0.952,1.674,false]],"MAR":[["MatrixFormer",1.086,0.939,1.311,false],["TabImpute (legacy)",1.076,0.946,1.25,false],["MissForest",1.197,1.024,1.444,false],["K-NN",1.075,0.996,1.153,false],["HyperImpute",1.117,0.951,1.367,false],["MICE",1.298,1.03,1.72,false],["ICE",1.135,0.982,1.347,false],["SoftImpute",1.417,1.18,1.753,false],["MIWAE",1.701,1.398,2.093,false],["GAIN",2.207,1.489,3.415,false]],"MNAR":[["MatrixFormer",1.978,1.543,2.473,false],["TabImpute (legacy)",2.184,1.782,2.613,false],["MissForest",2.58,1.984,3.344,false],["K-NN",2.539,2.037,3.106,false],["HyperImpute",2.636,1.9,3.672,false],["MICE",2.543,1.933,3.291,false],["ICE",2.988,2.047,4.199,false],["SoftImpute",3.372,2.401,4.689,false],["MIWAE",3.608,2.752,4.631,false],["GAIN",2.965,2.186,4.042,false]]},"uci":{"overall":[["MatrixFormer",0.998,0.76,1.248,false],["ICE",1.172,0.852,1.498,false],["MissForest",1.197,0.916,1.494,false],["K-NN",1.202,0.922,1.515,false],["SoftImpute",1.266,0.955,1.588,false],["HyperImpute",1.301,0.953,1.647,true],["MICE",1.625,1.099,2.167,false],["GAIN",1.95,1.414,2.502,true],["MIWAE",2.168,1.743,2.639,true]],"MCAR":[["MatrixFormer",0.685,0.539,0.808,false],["ICE",0.722,0.554,0.866,false],["MissForest",0.702,0.577,0.808,false],["K-NN",0.748,0.611,0.873,false],["SoftImpute",0.694,0.541,0.82,false],["HyperImpute",0.71,0.547,0.845,true],["MICE",1.131,0.774,1.54,false],["GAIN",0.941,0.742,1.171,true],["MIWAE",3.445,2.284,4.708,true]],"MAR":[["MatrixFormer",0.82,0.676,0.941,false],["ICE",0.841,0.659,1.005,false],["MissForest",0.864,0.737,0.969,false],["K-NN",0.853,0.736,0.965,false],["SoftImpute",0.917,0.758,1.043,false],["HyperImpute",0.957,0.729,1.179,false],["MICE",1.248,0.91,1.616,false],["GAIN",1.715,1.274,2.225,false],["MIWAE",1.229,1.14,1.345,false]],"MNAR":[["MatrixFormer",1.488,1.003,2.059,false],["ICE",1.952,1.254,2.708,false],["MissForest",2.025,1.34,2.803,false],["K-NN",2.007,1.333,2.796,false],["SoftImpute",2.187,1.462,2.999,false],["HyperImpute",1.955,1.297,2.649,false],["MICE",2.494,1.461,3.618,false],["GAIN",2.661,1.667,3.761,false],["MIWAE",2.56,1.871,3.348,false]]}};
+  var LLM = {"mteb":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.5788,0.6968,0.7353,0.7525,0.7651,0.7913,0.8088,0.821,0.8212,0.8261,0.8246,0.8283,0.8295,0.8299,0.8316],"gauss":[0.555,0.6757,0.7203,0.7317,0.7498,0.778,0.7974,0.8048,0.8062,0.8125,0.8125,0.8179,0.8191,0.8215,0.8259]},"mmlu":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.8459,0.8799,0.8987,0.8987,0.8992,0.8971,0.8963,0.8952,0.8951,0.8993,0.9005,0.9038,0.9108,0.9132,0.9155],"gauss":[0.8327,0.8809,0.9022,0.9047,0.9064,0.9066,0.9074,0.9077,0.9089,0.9118,0.9135,0.9169,0.9224,0.9247,0.9266]},"merged":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.2078,0.1026,0.2253,0.4049,0.4279,0.4505,0.489,0.5061,0.5115,0.5453,0.576,0.6055,0.6016,0.635,0.6464],"gauss":[0.0856,0.2055,0.2992,0.3638,0.3899,0.4154,0.2561,0.2693,0.2729,0.2899,0.3111,0.3262,0.3209,0.3593,0.3625]},"benchpress":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.0468,0.1139,0.1244,0.1982,0.204,0.2382,0.2696,0.2651,0.2638,0.2811,0.3097,0.3864,0.419,0.4287,0.4687],"gauss":[-0.1095,-0.072,-0.2198,-0.2489,-0.2386,-0.2498,-0.194,-0.2418,-0.2296,-0.1938,-0.1995,-0.0947,-0.0588,-0.0704,-0.0253]}};
+  var RT = [{"rows":16,"legacy":0.0421237989794462,"mf":0.0197654869407415,"speedup":2.1},{"rows":32,"legacy":0.0691015131305903,"mf":0.0197460029739886,"speedup":3.5},{"rows":64,"legacy":0.1294001138303429,"mf":0.0181074209976941,"speedup":7.1},{"rows":128,"legacy":0.2366087569389492,"mf":0.0192534530069679,"speedup":12.3},{"rows":256,"legacy":0.5148160869721323,"mf":0.0197554540354758,"speedup":26.1},{"rows":512,"legacy":1.2686091370414945,"mf":0.0244588200002908,"speedup":51.9},{"rows":1024,"legacy":4.167187005048618,"mf":0.038937872974202,"speedup":107.0}];
+
+  // ===== Results charts =====
+  (function () {
+    var CAUS = {
+      methods: ["MatrixFormer", "SDiD", "HyperImpute", "SoftImpute", "SC", "K-NN", "DiD"],
+      rmse: { "California smoking": [.159, .212, .374, .456, .653, .730, .721], "CPS": [.177, .215, .538, .340, .742, .628, .812], "Kansas": [.093, .127, .104, .487, .185, .579, .736] },
+      tau: { "California smoking": [.323, .363, .324, .455, .435, .485, .637], "CPS": [.305, .322, .518, .450, .480, .549, .606], "Kansas": [.125, .178, .119, .522, .243, .602, .745] }
+    };
+    var REC = {
+      methods: ["MatrixFormer", "SVD", "PMF", "UserKNN", "ItemKNN", "BPR"],
+      ml: { RMSE: [.8874, .8998, .9138, .9382, .9944, 2.2267], MAE: [.7279, .7430, .7534, .7681, .8242, 2.0143] },
+      nf: { RMSE: [.8617, .8621, .8835, .9296, .9502, 1.6980], MAE: [.7330, .7358, .7594, .7920, .8160, 1.5121] }
+    };
+    var LLM_NAMES = { mteb: "MTEB", mmlu: "MMLU", merged: "Merged", benchpress: "BenchPress" };
+
+    var tip = document.getElementById("vizTip");
+    function showTip(e, html) {
+      tip.innerHTML = html; tip.hidden = false;
+      var w = tip.offsetWidth, h = tip.offsetHeight, x = e.clientX + 14, y = e.clientY + 14;
+      if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+      if (y + h > innerHeight - 8) y = e.clientY - h - 14;
+      tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+    }
+    function hideTip() { tip.hidden = true; }
+    function S(tag, attrs, parent) {
+      var e = document.createElementNS(NS, tag);
+      for (var a in attrs) e.setAttribute(a, attrs[a]);
+      if (parent) parent.appendChild(e); return e;
+    }
+    function svgIn(el, W, H) { el.innerHTML = ""; return S("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, role: "img" }, el); }
+    function niceTicks(max, n) {
+      var raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+      var step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag, t = [];
+      for (var v = 0; v <= max + 1e-9; v += step) t.push(+v.toFixed(6));
+      return t;
+    }
+    function fmt(v, d) { return v.toFixed(d); }
+    function barPath(x0, x1, y, h) {
+      var r = Math.min(4, Math.max(0, x1 - x0), h / 2);
+      return "M" + x0 + "," + y + "H" + (x1 - r) + "Q" + x1 + "," + y + " " + x1 + "," + (y + r) + "V" + (y + h - r) + "Q" + x1 + "," + (y + h) + " " + (x1 - r) + "," + (y + h) + "H" + x0 + "Z";
+    }
+    function table(el, head, rows) {
+      var h = '<div class="tw"><table><tr>' + head.map(function (c) { return "<th>" + c + "</th>"; }).join("") + "</tr>";
+      rows.forEach(function (r) { h += "<tr>" + r.map(function (c, i) { return "<td" + (i ? ' class="num"' : "") + ">" + c + "</td>"; }).join("") + "</tr>"; });
+      el.innerHTML = h + "</table></div>";
+    }
+
+    // Horizontal bars, optional 95% interval whiskers
+    function hbars(el, rows, o) {
+      var W = el.clientWidth || 600, rowH = 26, bh = 14, top = 4, axisH = 24;
+      var labelW = Math.min(o.labelW || 150, W * 0.38), right = 44;
+      var H = top + rows.length * rowH + axisH, svg = svgIn(el, W, H);
+      var max = o.max || Math.max.apply(null, rows.map(function (r) { return r.hi != null ? r.hi : r.v; })) * 1.04;
+      var ticks = niceTicks(max, W < 480 ? 3 : 5); max = Math.max(max, ticks[ticks.length - 1]);
+      var X = function (v) { return labelW + v / max * (W - labelW - right); };
+      ticks.forEach(function (t) {
+        S("line", { x1: X(t), x2: X(t), y1: top, y2: H - axisH + 2, style: "stroke:var(--border)" }, svg);
+        S("text", { x: X(t), y: H - 6, "text-anchor": "middle" }, svg).textContent = t;
+      });
+      rows.forEach(function (r, i) {
+        var y = top + i * rowH, cy = y + rowH / 2, g = S("g", {}, svg);
+        var bg = S("rect", { x: 0, y: y, width: W, height: rowH, rx: 4, style: "fill:transparent" }, g);
+        S("path", { d: barPath(X(0), X(r.v), cy - bh / 2, bh), style: "fill:" + (r.hl ? "var(--mf)" : "var(--base)") }, g);
+        if (r.lo != null) {
+          var ws = "stroke:var(--text);stroke-width:1.25;opacity:.55";
+          S("line", { x1: X(r.lo), x2: X(r.hi), y1: cy, y2: cy, style: ws }, g);
+          S("line", { x1: X(r.lo), x2: X(r.lo), y1: cy - 4, y2: cy + 4, style: ws }, g);
+          S("line", { x1: X(r.hi), x2: X(r.hi), y1: cy - 4, y2: cy + 4, style: ws }, g);
+        }
+        var lab = S("text", { x: labelW - 10, y: cy + 4, "text-anchor": "end", "class": "lbl" + (r.hl ? " hl" : "") }, g);
+        lab.textContent = r.label + (r.dag ? " †" : "");
+        var vx = X(r.hi != null ? Math.max(r.hi, r.v) : r.v) + 6;
+        S("text", { x: vx, y: cy + 4, "class": "val" + (r.hl ? " hl" : "") }, g).textContent = fmt(r.v, o.dec);
+        g.addEventListener("mousemove", function (e) {
+          bg.style.fill = "var(--hl-row)";
+          showTip(e, "<b>" + r.label + "</b>" + (r.dag ? " †" : "") + "<br>" + (o.metric || "Score") + ": <b>" + fmt(r.v, o.dec) + "</b>" +
+            (r.lo != null ? "<br>95% interval: " + fmt(r.lo, o.dec) + "–" + fmt(r.hi, o.dec) : "") + (r.dag ? "<br>Incomplete coverage" : ""));
+        });
+        g.addEventListener("mouseleave", function () { bg.style.fill = "transparent"; hideTip(); });
+      });
+    }
+
+    // Dot plot on a zoomed axis, off-scale values pinned to the right edge
+    function dots(el, rows, o) {
+      var W = el.clientWidth || 400, rowH = 26, top = 4, axisH = 24, labelW = Math.min(110, W * 0.32), right = 54;
+      var H = top + rows.length * rowH + axisH, svg = svgIn(el, W, H);
+      var X = function (v) { return labelW + (v - o.min) / (o.max - o.min) * (W - labelW - right); };
+      o.ticks.forEach(function (t) {
+        S("line", { x1: X(t), x2: X(t), y1: top, y2: H - axisH + 2, style: "stroke:var(--border)" }, svg);
+        S("text", { x: X(t), y: H - 6, "text-anchor": "middle" }, svg).textContent = t.toFixed(2);
+      });
+      rows.forEach(function (r, i) {
+        var y = top + i * rowH, cy = y + rowH / 2, g = S("g", {}, svg), off = r.v > o.max;
+        var bg = S("rect", { x: 0, y: y, width: W, height: rowH, rx: 4, style: "fill:transparent" }, g);
+        S("line", { x1: labelW, x2: W - right + 8, y1: cy, y2: cy, style: "stroke:var(--border)" }, g);
+        S("text", { x: labelW - 10, y: cy + 4, "text-anchor": "end", "class": "lbl" + (r.hl ? " hl" : "") }, g).textContent = r.label;
+        if (off) {
+          var ex = W - right + 8;
+          S("path", { d: "M" + (ex - 9) + "," + (cy - 5) + "L" + ex + "," + cy + "L" + (ex - 9) + "," + (cy + 5) + "Z", style: "fill:var(--base)" }, g);
+          S("text", { x: ex + 6, y: cy + 4, "class": "val" }, g).textContent = r.v.toFixed(2);
+        } else {
+          S("circle", { cx: X(r.v), cy: cy, r: 6, style: "fill:" + (r.hl ? "var(--mf)" : "var(--base)") + ";stroke:var(--surface);stroke-width:2" }, g);
+          if (r.hl || o.labelAll) S("text", { x: X(r.v), y: cy - 10, "text-anchor": "middle", "class": "val" + (r.hl ? " hl" : "") }, g).textContent = r.v.toFixed(4);
+        }
+        g.addEventListener("mousemove", function (e) { bg.style.fill = "var(--hl-row)"; showTip(e, "<b>" + r.label + "</b><br>" + o.metric + ": <b>" + r.v.toFixed(4) + "</b>" + (off ? "<br>Off the zoomed scale" : "")); });
+        g.addEventListener("mouseleave", function () { bg.style.fill = "transparent"; hideTip(); });
+      });
+    }
+
+    // Line chart with crosshair; series share x values
+    function lines(el, o) {
+      var W = el.clientWidth || 400, H = o.height || 200, m = { t: 12, r: o.endLabels ? 74 : 14, b: 30, l: 44 };
+      var svg = svgIn(el, W, H), pw = W - m.l - m.r, ph = H - m.t - m.b;
+      var xs = o.x, lx = o.logX, ly = o.logY;
+      var tx = function (v) { return lx ? Math.log10(v) : v; }, ty = function (v) { return ly ? Math.log10(v) : v; };
+      var x0 = tx(xs[0]), x1 = tx(xs[xs.length - 1]);
+      var X = function (v) { return m.l + (tx(v) - x0) / (x1 - x0) * pw; };
+      var Y = function (v) { return m.t + (1 - (ty(v) - ty(o.yMin)) / (ty(o.yMax) - ty(o.yMin))) * ph; };
+      o.yTicks.forEach(function (t) {
+        S("line", { x1: m.l, x2: m.l + pw, y1: Y(t), y2: Y(t), style: "stroke:var(--border)" + (t === 0 && !ly ? ";stroke:var(--muted);opacity:.5" : "") }, svg);
+        S("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, svg).textContent = o.fmtY(t);
+      });
+      o.xTicks.forEach(function (t) { S("text", { x: X(t), y: H - m.b + 16, "text-anchor": "middle" }, svg).textContent = o.fmtX ? o.fmtX(t) : t; });
+      if (o.xLabel) S("text", { x: m.l + pw / 2, y: H - 2, "text-anchor": "middle" }, svg).textContent = o.xLabel;
+      o.series.forEach(function (s) {
+        var d = s.y.map(function (v, i) { return (i ? "L" : "M") + X(xs[i]).toFixed(1) + "," + Y(v).toFixed(1); }).join("");
+        S("path", { d: d, style: "fill:none;stroke:" + s.color + ";stroke-width:2;stroke-linejoin:round;stroke-linecap:round" }, svg);
+        var li = s.y.length - 1;
+        S("circle", { cx: X(xs[li]), cy: Y(s.y[li]), r: 4, style: "fill:" + s.color + ";stroke:var(--surface);stroke-width:2" }, svg);
+        if (o.endLabels) S("text", { x: X(xs[li]) + 8, y: Y(s.y[li]) + 4, "class": "val" }, svg).textContent = o.fmtEnd(s.y[li]);
+      });
+      var cross = S("line", { y1: m.t, y2: m.t + ph, style: "stroke:var(--muted);stroke-width:1;opacity:0" }, svg);
+      var mk = o.series.map(function (s) { return S("circle", { r: 4.5, style: "fill:" + s.color + ";stroke:var(--surface);stroke-width:2;opacity:0" }, svg); });
+      var hit = S("rect", { x: m.l - 8, y: 0, width: pw + 16, height: H, style: "fill:transparent" }, svg);
+      hit.addEventListener("mousemove", function (e) {
+        var b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * (W / b.width), best = 0;
+        xs.forEach(function (v, i) { if (Math.abs(X(v) - px) < Math.abs(X(xs[best]) - px)) best = i; });
+        var cx = X(xs[best]); cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.opacity = .5;
+        mk.forEach(function (c, j) { c.setAttribute("cx", cx); c.setAttribute("cy", Y(o.series[j].y[best])); c.style.opacity = 1; });
+        showTip(e, o.tip(best));
+      });
+      hit.addEventListener("mouseleave", function () { cross.style.opacity = 0; mk.forEach(function (c) { c.style.opacity = 0; }); hideTip(); });
+    }
+    function tipRows(title, items) {
+      return "<b>" + title + "</b>" + items.map(function (it) { return '<div class="row"><i style="background:' + it[0] + '"></i>' + it[1] + '<span class="num">' + it[2] + "</span></div>"; }).join("");
+    }
+
+    // ---- state + renderers ----
+    var st = { suite: "missbench", pat: "overall", metric: "rmse", rec: "ml" };
+    var PAT_NAMES = { overall: "All mechanisms", MCAR: "MCAR", MAR: "MAR", MNAR: "MNAR" };
+    function renderImp() {
+      var rows = IMP[st.suite][st.pat].map(function (r) { return { label: r[0], v: r[1], lo: r[2], hi: r[3], dag: r[4], hl: r[0] === "MatrixFormer" }; });
+      document.getElementById("impTitle").textContent = (st.suite === "uci" ? "UCI" : "MissBench") + " · " + PAT_NAMES[st.pat] + " · NRMSE";
+      hbars(document.getElementById("impChart"), rows, { dec: 3, metric: "NRMSE" });
+      table(document.getElementById("impTable"), ["Method", "NRMSE", "95% low", "95% high"],
+        rows.map(function (r) { return [r.label + (r.dag ? " †" : ""), r.v.toFixed(3), r.lo.toFixed(3), r.hi.toFixed(3)]; }));
+    }
+    function renderCaus() {
+      var host = document.getElementById("causChart"); host.innerHTML = "";
+      var data = CAUS[st.metric], trows = [];
+      Object.keys(data).forEach(function (bench) {
+        var wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
+        t.className = "panel-title"; t.textContent = bench; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
+        var rows = CAUS.methods.map(function (mth, i) { return { label: mth, v: data[bench][i], hl: mth === "MatrixFormer" }; });
+        hbars(c, rows, { dec: 3, max: 1, labelW: 96, metric: "Normalized score" });
+      });
+      CAUS.methods.forEach(function (mth, i) { trows.push([mth].concat(Object.keys(data).map(function (b) { return data[b][i].toFixed(3); }))); });
+      table(document.getElementById("causTable"), ["Method"].concat(Object.keys(data)), trows);
+    }
+    function renderRec() {
+      var host = document.getElementById("recChart"); host.innerHTML = "";
+      var d = REC[st.rec], ax = { RMSE: [0.84, 1.0, [0.85, 0.9, 0.95, 1.0]], MAE: [0.70, 0.86, [0.70, 0.75, 0.80, 0.85]] };
+      ["RMSE", "MAE"].forEach(function (metric) {
+        var wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
+        t.className = "panel-title"; t.textContent = metric; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
+        var rows = REC.methods.map(function (mth, i) { return { label: mth, v: d[metric][i], hl: mth === "MatrixFormer" }; });
+        dots(c, rows, { min: ax[metric][0], max: ax[metric][1], ticks: ax[metric][2], metric: metric });
+      });
+      table(document.getElementById("recTable"), ["Method", "RMSE", "MAE"], REC.methods.map(function (mth, i) { return [mth, d.RMSE[i].toFixed(4), d.MAE[i].toFixed(4)]; }));
+    }
+    function renderLLM() {
+      var host = document.getElementById("llmChart"); host.innerHTML = ""; var trows = [];
+      Object.keys(LLM_NAMES).forEach(function (key) {
+        var d = LLM[key], wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
+        t.className = "panel-title"; t.textContent = LLM_NAMES[key]; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
+        var all = d.mf.concat(d.gauss), lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+        var step = (hi - lo) > 0.6 ? 0.2 : (hi - lo) > 0.25 ? 0.1 : 0.05;
+        var yMin = Math.floor(lo / step) * step, yMax = Math.ceil(hi / step) * step, yt = [];
+        for (var v = yMin; v <= yMax + 1e-9; v += step) yt.push(+v.toFixed(2));
+        lines(c, {
+          x: d.k, xTicks: [1, 5, 10, 15], xLabel: "tasks revealed, k", yMin: yMin, yMax: yMax, yTicks: yt, height: 190,
+          fmtY: function (v) { return Math.abs(v) < 1e-9 ? "0" : v.toFixed(step < 0.1 ? 2 : 1); },
+          series: [{ color: "var(--mf)", y: d.mf }, { color: "var(--alt)", y: d.gauss }],
+          tip: function (i) { return tipRows(LLM_NAMES[key] + " · k = " + d.k[i], [["var(--mf)", "MatrixFormer", d.mf[i].toFixed(4)], ["var(--alt)", "Gaussian", d.gauss[i].toFixed(4)]]); }
+        });
+        [4, 9, 14].forEach(function (i) { trows.push([LLM_NAMES[key], d.k[i], d.mf[i].toFixed(4), d.gauss[i].toFixed(4)]); });
+      });
+      table(document.getElementById("llmTable"), ["Dataset", "k", "MatrixFormer R²", "Gaussian R²"], trows);
+    }
+    function renderRT() {
+      var xs = RT.map(function (r) { return r.rows; });
+      lines(document.getElementById("rtChart"), {
+        x: xs, logX: true, logY: true, xTicks: xs, yMin: 0.01, yMax: 10, yTicks: [0.01, 0.1, 1, 10], height: 280, endLabels: true,
+        xLabel: "rows (10 columns)", fmtY: function (v) { return v >= 1 ? v + " s" : v + " s"; },
+        fmtEnd: function (v) { return v >= 1 ? v.toFixed(2) + " s" : v.toFixed(3) + " s"; },
+        series: [{ color: "var(--mf)", y: RT.map(function (r) { return r.mf; }) }, { color: "var(--alt)", y: RT.map(function (r) { return r.legacy; }) }],
+        tip: function (i) { var r = RT[i]; return tipRows(r.rows + " rows × 10 columns", [["var(--mf)", "MatrixFormer-Impute", r.mf.toFixed(4) + " s"], ["var(--alt)", "TabImpute", r.legacy.toFixed(3) + " s"]]) + "<div>Speedup: <b>" + r.speedup + "×</b></div>"; }
+      });
+      table(document.getElementById("rtTable"), ["Rows", "TabImpute (s)", "MatrixFormer-Impute (s)", "Speedup"],
+        RT.map(function (r) { return [r.rows, r.legacy.toFixed(4), r.mf.toFixed(4), r.speedup + "×"]; }));
+    }
+    function bindTabs(id, key, fn) {
+      var ts = document.querySelectorAll("#" + id + " .tab");
+      ts.forEach(function (t) {
+        t.addEventListener("click", function () {
+          ts.forEach(function (o) { o.setAttribute("aria-selected", "false"); });
+          t.setAttribute("aria-selected", "true"); st[key] = t.dataset.key; fn();
+        });
+      });
+    }
+    bindTabs("impSuite", "suite", renderImp); bindTabs("impPat", "pat", renderImp);
+    bindTabs("causMetric", "metric", renderCaus); bindTabs("recData", "rec", renderRec);
+    function renderAll() { renderImp(); renderCaus(); renderRec(); renderLLM(); renderRT(); }
+    renderAll();
+    var lastW = innerWidth, rt;
+    addEventListener("resize", function () { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(rt); rt = setTimeout(renderAll, 150); });
+  })();
+
   // Blend slider
   var w = document.getElementById("w"), wv = document.getElementById("wv");
   var mg = document.getElementById("mg"), ms = document.getElementById("ms"), wcap = document.getElementById("wcap");
@@ -1301,7 +1677,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
   w.addEventListener("input", upd); upd();
 
   // Tabs
-  var tabs = document.querySelectorAll(".tab");
+  var tabs = document.querySelectorAll(".tab[data-panel]");
   tabs.forEach(function (t) {
     t.addEventListener("click", function () {
       tabs.forEach(function (o) { o.setAttribute("aria-selected", "false"); document.getElementById(o.dataset.panel).hidden = true; });

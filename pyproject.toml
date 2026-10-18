@@ -17,7 +17,7 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/jacobf18/MatrixFormer"
 Checkpoints = "https://huggingface.co/Tabimpute/TabImpute"
-Paper = "https://github.com/jacobf18/MatrixFormerPaper"
+Paper = "https://arxiv.org/abs/2610.06751"
 
 [project.scripts]
 matrixformer = "matrixformer.__main__:main"
