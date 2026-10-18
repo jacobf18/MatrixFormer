@@ -7,6 +7,19 @@
 <meta name="description" content="MatrixFormer: a pretrained transformer foundation model for zero-shot matrix completion.">
 <meta property="og:title" content="MatrixFormer: A Foundation Model for Matrix Completion">
 <meta property="og:description" content="Fill missing entries in numerical matrices with pretrained transformers. No training or fine-tuning.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jacobf18.github.io/MatrixFormer/">
+<meta property="og:image" content="https://jacobf18.github.io/MatrixFormer/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MatrixFormer logo: a 3 by 3 grid with one row and column highlighted, beside the title MatrixFormer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MatrixFormer: A Foundation Model for Matrix Completion">
+<meta name="twitter:description" content="Fill missing entries in numerical matrices with pretrained transformers. No training or fine-tuning.">
+<meta name="twitter:image" content="https://jacobf18.github.io/MatrixFormer/assets/og-image.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -91,7 +104,9 @@ nav.top {
   border-bottom: 1px solid var(--border);
 }
 nav.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
-nav.top .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+nav.top .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 9px; }
+nav.top .brand:hover { text-decoration: none; }
+nav.top .brand img { display: block; }
 nav.top .links { display: flex; gap: 18px; margin-left: auto; font-size: 14px; white-space: nowrap; }
 @media (max-width: 420px) { nav.top .links { gap: 14px; } nav.top .wrap { gap: 12px; } }
 nav.top .links a { color: var(--muted); }
@@ -363,7 +378,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 <nav class="top">
   <div class="wrap">
-    <a class="brand" href="#">MatrixFormer</a>
+    <a class="brand" href="#"><img src="assets/logo-64.png" alt="" width="26" height="26">MatrixFormer</a>
     <div class="links">
       <a href="#results">Results</a>
       <a href="#how" class="opt">How it works</a>
