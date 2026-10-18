@@ -11,6 +11,7 @@ normalization, and blending code lives here. It does not import `tabimpute`,
 depend on the `tabular` repository, or contain datasets, training jobs, or
 benchmark infrastructure.
 
+- [Project page](https://jacobf18.github.io/MatrixFormer/)
 - [Hugging Face weights and configs](https://huggingface.co/Tabimpute/TabImpute)
 - [Paper](https://arxiv.org/abs/2610.06751)
 - [Paper source](https://github.com/jacobf18/MatrixFormerPaper)
