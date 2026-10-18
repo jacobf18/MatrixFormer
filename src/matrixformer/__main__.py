@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import MatrixFormerImpute, MatrixFormerPlus, download_checkpoints
+from . import MatrixFormerImpute, MatrixFormerPlus, MatrixFormerRecSys, download_checkpoints
 from .imputer import prepare_matrix
 
 
@@ -16,8 +16,8 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--model", choices=("plus", "impute"), default="plus",
-        help="Two-expert blend (plus) or general expert only (impute)",
+        "--model", choices=("plus", "impute", "recsys"), default="plus",
+        help="Two-expert blend (plus), general expert only (impute), or recommender expert only (recsys)",
     )
     parser.add_argument(
         "--input", type=Path,
@@ -81,7 +81,9 @@ def main():
     else:
         matrix = np.load(args.input, allow_pickle=False)
     matrix = prepare_matrix(matrix)
-    factory = MatrixFormerPlus if args.model == "plus" else MatrixFormerImpute
+    factory = {
+        "plus": MatrixFormerPlus, "impute": MatrixFormerImpute, "recsys": MatrixFormerRecSys,
+    }[args.model]
     model = factory.from_pretrained(
         device=args.device, precision=args.precision, max_rows=args.max_rows or None,
         max_cols=args.max_cols or None, local_dir=args.local_dir, cache_dir=args.cache_dir,
