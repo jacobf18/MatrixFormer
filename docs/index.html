@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MatrixFormer</title>
+<meta name="description" content="MatrixFormer: a pretrained transformer foundation model for zero-shot matrix completion.">
+<meta property="og:title" content="MatrixFormer: A Foundation Model for Matrix Completion">
+<meta property="og:description" content="Fill missing entries in numerical matrices with pretrained transformers. No training or fine-tuning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --surface-2: #f3f3f0;
+  --text: #1b1d21;
+  --muted: #5d636e;
+  --border: #e3e3de;
+  --accent: #3b5bdb;
+  --accent-soft: #e7ecfd;
+  --general: #3b5bdb;
+  --specialist: #d9480f;
+  --missing: #e9e9e4;
+  --hatch: #c9c9c2;
+  --code-bg: #f5f5f2;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317;
+    --surface: #181b20;
+    --surface-2: #1f232a;
+    --text: #e8e9ec;
+    --muted: #9aa1ad;
+    --border: #2b3038;
+    --accent: #8ea5ff;
+    --accent-soft: #232b45;
+    --general: #8ea5ff;
+    --specialist: #ff9b63;
+    --missing: #23272e;
+    --hatch: #3a404a;
+    --code-bg: #1b1f25;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317;
+  --surface: #181b20;
+  --surface-2: #1f232a;
+  --text: #e8e9ec;
+  --muted: #9aa1ad;
+  --border: #2b3038;
+  --accent: #8ea5ff;
+  --accent-soft: #232b45;
+  --general: #8ea5ff;
+  --specialist: #ff9b63;
+  --missing: #23272e;
+  --hatch: #3a404a;
+  --code-bg: #1b1f25;
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-ligatures: none; }
+:not(pre) > code {
+  font-size: .88em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .05em .35em;
+}
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+/* Nav */
+nav.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+nav.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+nav.top .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+nav.top .links { display: flex; gap: 18px; margin-left: auto; font-size: 14px; white-space: nowrap; }
+@media (max-width: 420px) { nav.top .links { gap: 14px; } nav.top .wrap { gap: 12px; } }
+nav.top .links a { color: var(--muted); }
+nav.top .links a:hover { color: var(--text); text-decoration: none; }
+@media (max-width: 640px) { nav.top .links .opt { display: none; } }
+
+/* Hero */
+header.hero { padding: 64px 0 40px; }
+.hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
+@media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(34px, 5vw, 50px); line-height: 1.08; letter-spacing: -.025em; margin: 10px 0 16px; }
+.lede { font-size: 18px; color: var(--muted); margin: 0 0 12px; max-width: 34em; }
+.authors { font-size: 14.5px; color: var(--muted); margin: 16px 0 24px; }
+.authors b { color: var(--text); font-weight: 600; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 8px; font-size: 14.5px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  box-shadow: var(--shadow);
+}
+.btn:hover { text-decoration: none; border-color: var(--muted); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn svg { width: 16px; height: 16px; }
+
+/* Matrix demo */
+.demo {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px; box-shadow: var(--shadow);
+}
+.demo-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; }
+.demo-head .label { font-size: 13px; color: var(--muted); }
+.demo-head .label b { color: var(--text); }
+.grid {
+  display: grid; gap: 3px;
+  grid-template-columns: repeat(9, 1fr);
+}
+.cell {
+  aspect-ratio: 1; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font: 500 10px "JetBrains Mono", monospace;
+  color: rgba(0,0,0,.55);
+  transition: background-color .5s ease, box-shadow .5s ease, transform .4s ease;
+}
+.cell.missing {
+  background: var(--missing) !important;
+  background-image: repeating-linear-gradient(45deg, var(--hatch) 0 1.5px, transparent 1.5px 6px) !important;
+  color: transparent;
+}
+.cell.filled { box-shadow: inset 0 0 0 2px var(--text); }
+.cell.pop { transform: scale(1.12); }
+.demo-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 12px; flex-wrap: wrap; }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.sw.obs { background: linear-gradient(90deg, #a5b4fc, #86dfc4, #fcd34d); }
+.sw.mis { background: var(--missing); background-image: repeating-linear-gradient(45deg, var(--hatch) 0 1.5px, transparent 1.5px 5px); }
+.sw.fil { background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--text); }
+button.run {
+  font: 600 13.5px Inter, sans-serif; cursor: pointer;
+  padding: 7px 14px; border-radius: 7px; border: 0;
+  background: var(--accent); color: #fff;
+}
+:root[data-theme="dark"] button.run { color: #111; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.run { color: #111; } }
+button.run:disabled { opacity: .6; cursor: default; }
+.note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+/* Sections */
+section { padding: 56px 0; border-top: 1px solid var(--border); }
+h2 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 8px; line-height: 1.2; }
+h3 { font-size: 18px; margin: 28px 0 8px; letter-spacing: -.01em; }
+.sub { color: var(--muted); margin: 0 0 28px; max-width: 46em; }
+
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.card h3 { margin: 0 0 6px; font-size: 16px; }
+.card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.card .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.card .ic svg { width: 18px; height: 18px; }
+
+/* Diagram */
+.figure { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; overflow-x: auto; }
+.figure svg { display: block; width: 100%; min-width: 680px; height: auto; }
+.figure svg text { font-family: Inter, sans-serif; fill: var(--text); }
+.figure svg .muted { fill: var(--muted); }
+.figure svg .box { fill: var(--surface-2); stroke: var(--border); }
+.figure svg .boxa { fill: var(--accent-soft); stroke: var(--accent); }
+.figure svg .line { stroke: var(--muted); fill: none; stroke-width: 1.5; }
+.figure svg .gen { fill: var(--general); }
+.figure svg .spec { fill: var(--specialist); }
+.figure svg .genl { stroke: var(--general); }
+.figure svg .specl { stroke: var(--specialist); }
+.figcap { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
+.scroll-hint { display: none; font-size: 12px; color: var(--muted); margin-top: 6px; }
+@media (max-width: 720px) { .scroll-hint { display: block; } }
+
+.steps { counter-reset: s; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; margin-top: 28px; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+.step { position: relative; padding-left: 40px; }
+.step::before {
+  counter-increment: s; content: counter(s);
+  position: absolute; left: 0; top: 2px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center;
+}
+.step h4 { margin: 0 0 4px; font-size: 15.5px; }
+.step p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+/* Blend */
+.blend { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 820px) { .blend { grid-template-columns: 1fr; } }
+.formula {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px 20px; font: 15px/1.9 "JetBrains Mono", monospace; overflow-x: auto;
+}
+.formula .g { color: var(--general); font-weight: 600; }
+.formula .s { color: var(--specialist); font-weight: 600; }
+.formula .c { color: var(--muted); font-size: 13px; }
+.slider-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.slider-box label { font-size: 14px; color: var(--muted); display: block; margin-bottom: 8px; }
+.slider-box input[type=range] { width: 100%; accent-color: var(--specialist); }
+.mix { display: flex; height: 34px; border-radius: 8px; overflow: hidden; margin: 14px 0 8px; font: 600 12.5px Inter, sans-serif; color: #fff; }
+.mix div { display: flex; align-items: center; justify-content: center; transition: flex-basis .15s; white-space: nowrap; overflow: hidden; }
+.mix .mg { background: var(--general); }
+.mix .ms { background: var(--specialist); }
+:root[data-theme="dark"] .mix { color: #111; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mix { color: #111; } }
+.mix-cap { font-size: 13.5px; color: var(--muted); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+td.num { font-family: "JetBrains Mono", monospace; font-size: 13.5px; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+.table-wrap tr:last-child td { border-bottom: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 820px) { .two { grid-template-columns: 1fr; } }
+
+/* Code */
+.code { position: relative; background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; margin: 0 0 16px; }
+.code .bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--border); font-size: 12.5px; color: var(--muted); }
+.code pre { margin: 0; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; }
+.copy { font: 500 12px Inter, sans-serif; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 3px 9px; }
+.copy:hover { color: var(--text); border-color: var(--muted); }
+.tk-k { color: #a626a4; } .tk-s { color: #50a14f; } .tk-c { color: #8a8f98; font-style: italic; } .tk-n { color: #c18401; } .tk-f { color: #4078f2; }
+:root[data-theme="dark"] .tk-k { color: #d19ae6; } :root[data-theme="dark"] .tk-s { color: #98c379; } :root[data-theme="dark"] .tk-n { color: #e5c07b; } :root[data-theme="dark"] .tk-f { color: #7fb0ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tk-k { color: #d19ae6; } :root:not([data-theme="light"]) .tk-s { color: #98c379; } :root:not([data-theme="light"]) .tk-n { color: #e5c07b; } :root:not([data-theme="light"]) .tk-f { color: #7fb0ff; } }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab { font: 500 13.5px Inter, sans-serif; cursor: pointer; padding: 6px 12px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--surface); border-color: var(--border); color: var(--text); }
+.panel[hidden] { display: none; }
+
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14.5px; margin: 20px 0 0; }
+
+/* Deep dive */
+:root { --corner: #c4b5fd; --clsc: #fda4af; --clsr: #fdba74; --blk: var(--accent); --enc: #12b886; --dec: var(--specialist); }
+.deep { margin-top: 56px; padding-top: 40px; border-top: 1px dashed var(--border); }
+.deep h3 { font-size: 20px; margin: 44px 0 10px; scroll-margin-top: 72px; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.toc a { font-size: 13.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+.toc a:hover { color: var(--text); text-decoration: none; border-color: var(--muted); }
+.prose { margin: 0 0 12px; max-width: 46em; }
+.facts { margin: 0 0 12px; padding-left: 20px; font-size: 15px; color: var(--muted); }
+.facts li { margin-bottom: 6px; }
+.facts b { color: var(--text); font-weight: 600; }
+.budget { display: flex; height: 38px; border-radius: 8px; overflow: hidden; font: 600 13px Inter, sans-serif; color: #fff; }
+.budget div { display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+.b-enc { background: var(--enc); } .b-blk { background: var(--blk); } .b-dec { background: var(--dec); }
+:root[data-theme="dark"] .budget { color: #111; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .budget { color: #111; } }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+.d-enc { background: var(--enc); } .d-blk { background: var(--blk); } .d-dec { background: var(--dec); }
+.axial { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 820px) { .axial { grid-template-columns: 1fr; } }
+.axgrid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; cursor: pointer; max-width: 440px; margin: 0 auto; }
+#gridSvg, #binSvg { max-width: 400px; margin: 0 auto; }
+.axgrid div { aspect-ratio: 1; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--border); transition: background-color .25s; }
+.axgrid div.hl { background: color-mix(in srgb, var(--accent) 45%, transparent); border-color: transparent; }
+.axgrid div.hl2 { background: color-mix(in srgb, var(--specialist) 40%, transparent); border-color: transparent; }
+.axgrid div.sel { background: var(--text); border-color: var(--text); }
+#gridSvg text, #binSvg text { font-family: Inter, sans-serif; fill: var(--muted); font-size: 11px; }
+
+/* Training */
+:root { --f1: #3b5bdb; --f2: #12b886; --f3: #d9480f; --f4: #ae3ec9; }
+:root[data-theme="dark"] { --f1: #8ea5ff; --f2: #38d9a9; --f3: #ff9b63; --f4: #e599f7; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --f1: #8ea5ff; --f2: #38d9a9; --f3: #ff9b63; --f4: #e599f7; } }
+.phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0 12px; }
+@media (max-width: 860px) { .phases { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .phases { grid-template-columns: 1fr; } }
+.phase { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; }
+.phase.ph-teach { border-style: dashed; background: transparent; }
+.ph-tag { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.phase h4 { margin: 4px 0 2px; font-size: 16px; }
+.ph-num { font: 500 13px "JetBrains Mono", monospace; color: var(--muted); margin-bottom: 8px; }
+.phase ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+.phase li { margin-bottom: 3px; }
+.mini-h { margin: 18px 0 6px; font-size: 15px; }
+.masks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 8px; max-width: 880px; }
+@media (max-width: 760px) { .masks { grid-template-columns: 1fr 1fr; } }
+.mask-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.mask-card .mg2 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; }
+.mask-card .mg2 i { aspect-ratio: 1; border-radius: 2px; background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.mask-card .mg2 i.m { background: var(--missing); background-image: repeating-linear-gradient(45deg, var(--hatch) 0 1px, transparent 1px 4px); }
+.mask-card b { display: block; font-size: 13.5px; margin-top: 8px; }
+.mask-card span { font-size: 12.5px; color: var(--muted); }
+#specSvg text { font-family: Inter, sans-serif; fill: var(--muted); font-size: 11px; }
+#specSvg { max-width: 400px; margin: 0 auto; display: block; }
+
+footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 13.5px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+.theme-toggle { background: transparent; border: 1px solid var(--border); border-radius: 7px; width: 32px; height: 32px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+.theme-toggle svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="brand" href="#">MatrixFormer</a>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#training" class="opt">Training</a>
+      <a href="#blend" class="opt">MatrixFormer+</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#cite" class="opt">Cite</a>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Foundation model · Matrix completion</div>
+      <h1>MatrixFormer</h1>
+      <p class="lede">A pretrained transformer that fills in the missing entries of any numerical matrix: ratings, panels, sensor grids, tables. No training, no fine-tuning, no hyperparameters to tune.</p>
+      <p class="authors">
+        <b>Dwaipayan Saha</b>*, <b>Jacob Feitelberg</b>*, <b>Kyuseong Choi</b>*, Raaz Dwivedi, Anish Agarwal<br>
+        <span style="font-size:13px">* Equal contribution</span>
+      </p>
+      <div class="btns">
+        <a class="btn primary" href="https://arxiv.org/abs/2610.06751">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+          Paper
+        </a>
+        <a class="btn" href="https://github.com/jacobf18/MatrixFormer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+          Code
+        </a>
+        <a class="btn" href="https://huggingface.co/Tabimpute/TabImpute">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>
+          Weights
+        </a>
+      </div>
+    </div>
+
+    <div class="demo" aria-label="Animated illustration of matrix completion">
+      <div class="demo-head">
+        <div class="label" id="demoLabel"><b>12 × 9</b> matrix · <b>30</b> missing</div>
+        <button class="run" id="runBtn">Complete matrix</button>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="demo-foot">
+        <div class="legend">
+          <span><i class="sw obs"></i>Observed</span>
+          <span><i class="sw mis"></i>Missing</span>
+          <span><i class="sw fil"></i>Imputed</span>
+        </div>
+      </div>
+      <div class="note">Illustration on a synthetic low-rank matrix, the same shape as the package's built-in demo. Not live model output.</div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="cards">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></div>
+        <h3>Zero-shot</h3>
+        <p>Pretrained once on synthetic matrices. At inference, one forward pass completes your matrix. No weights are updated.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></div>
+        <h3>Any shape</h3>
+        <p>Attention along rows and columns works for any number of rows and columns. Large matrices are processed in overlapping windows.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h3>Observed entries kept</h3>
+        <p>Only missing cells are predicted. Every observed value is returned exactly, in its original units.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">Each matrix cell becomes a token. Eight transformer blocks alternate attention along rows and along columns, so every cell can borrow information from its row and its column. A decoder then predicts a distribution over the missing value.</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 980 300" role="img" aria-label="MatrixFormer architecture diagram">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 10 5 0 10z" fill="currentColor" style="fill: var(--muted)"/>
+          </marker>
+          <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="5" height="5" style="fill: var(--missing)"/>
+            <line x1="0" y1="0" x2="0" y2="5" style="stroke: var(--hatch)" stroke-width="2"/>
+          </pattern>
+        </defs>
+
+        <!-- Input matrix -->
+        <text x="70" y="40" text-anchor="middle" font-size="13" font-weight="600">Input</text>
+        <g id="inMatrix"></g>
+        <text x="70" y="232" text-anchor="middle" font-size="11.5" class="muted">NaN = missing</text>
+        <text x="70" y="248" text-anchor="middle" font-size="11.5" class="muted">column-normalized</text>
+
+        <path class="line" d="M130 140 H168" marker-end="url(#arr)"/>
+
+        <!-- Encoder -->
+        <rect class="box" x="172" y="60" width="150" height="160" rx="10"/>
+        <text x="247" y="84" text-anchor="middle" font-size="13" font-weight="600">Cell encoder</text>
+        <text x="247" y="110" text-anchor="middle" font-size="11.5" class="muted">value → MLP → 768-d</text>
+        <text x="247" y="130" text-anchor="middle" font-size="11.5" class="muted">missing → mask token</text>
+        <text x="247" y="150" text-anchor="middle" font-size="11.5" class="muted">+ missingness embedding</text>
+        <text x="247" y="178" text-anchor="middle" font-size="11.5" class="muted">+ 12 row &amp; 12 column</text>
+        <text x="247" y="194" text-anchor="middle" font-size="11.5" class="muted">CLS tokens</text>
+
+        <path class="line" d="M322 140 H360" marker-end="url(#arr)"/>
+
+        <!-- Transformer stack -->
+        <rect class="boxa" x="364" y="30" width="270" height="220" rx="12" stroke-width="1.5"/>
+        <text x="499" y="54" text-anchor="middle" font-size="13" font-weight="600">Axial transformer block</text>
+        <text x="610" y="54" text-anchor="end" font-size="12" font-weight="700" style="fill: var(--accent)">× 8</text>
+
+        <rect class="box" x="384" y="68" width="230" height="46" rx="8"/>
+        <text x="499" y="88" text-anchor="middle" font-size="12.5" font-weight="600">Attention across columns</text>
+        <text x="499" y="105" text-anchor="middle" font-size="11" class="muted">within each row · RMSNorm · RoPE</text>
+
+        <rect class="box" x="384" y="124" width="230" height="46" rx="8"/>
+        <text x="499" y="144" text-anchor="middle" font-size="12.5" font-weight="600">Attention across rows</text>
+        <text x="499" y="161" text-anchor="middle" font-size="11" class="muted">within each column · RMSNorm · RoPE</text>
+
+        <rect class="box" x="384" y="180" width="230" height="46" rx="8"/>
+        <text x="499" y="200" text-anchor="middle" font-size="12.5" font-weight="600">SwiGLU feed-forward</text>
+        <text x="499" y="217" text-anchor="middle" font-size="11" class="muted">per cell · 768 → 1536 → 768</text>
+
+        <path class="line" d="M634 140 H672" marker-end="url(#arr)"/>
+
+        <!-- Decoder -->
+        <rect class="box" x="676" y="60" width="140" height="160" rx="10"/>
+        <text x="746" y="84" text-anchor="middle" font-size="13" font-weight="600">Decoder</text>
+        <text x="746" y="106" text-anchor="middle" font-size="11.5" class="muted">MLP → 5000 bins</text>
+        <g id="hist"></g>
+        <text x="746" y="206" text-anchor="middle" font-size="11.5" class="muted">predictive mean</text>
+
+        <path class="line" d="M816 140 H854" marker-end="url(#arr)"/>
+
+        <!-- Output -->
+        <text x="912" y="40" text-anchor="middle" font-size="13" font-weight="600">Output</text>
+        <g id="outMatrix"></g>
+        <text x="912" y="232" text-anchor="middle" font-size="11.5" class="muted">original units,</text>
+        <text x="912" y="248" text-anchor="middle" font-size="11.5" class="muted">observed kept</text>
+      </svg>
+    </div>
+    <div class="scroll-hint">Scroll sideways to see the full diagram →</div>
+    <p class="figcap">One expert network, about 78M parameters. MatrixFormer+ runs two of these experts and blends them (below).</p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>Normalize each column</h4>
+        <p>Observed values are standardized per column, so columns in very different units become comparable. Predictions are mapped back afterwards.</p>
+      </div>
+      <div class="step">
+        <h4>Embed every cell</h4>
+        <p>Observed values pass through a small MLP. Missing cells get a learned mask token. A missingness embedding tells the model which is which, and learned CLS tokens border each row and column.</p>
+      </div>
+      <div class="step">
+        <h4>Alternate row and column attention</h4>
+        <p>Each block first lets cells in the same row attend to each other, then cells in the same column, then applies a per-cell feed-forward layer. Stacking eight blocks spreads information across the whole matrix.</p>
+      </div>
+      <div class="step">
+        <h4>Decode a distribution</h4>
+        <p>For each cell the decoder outputs probabilities over 5000 value bins. The prediction is the mean of that distribution, which is written into the missing cells only.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Trained only on synthetic data.</b> Both experts learned from randomly generated matrices with varied structure and missingness patterns. No real ratings or tables were used for gradient updates.
+    </div>
+
+    <!-- ===== Deep dive ===== -->
+    <div class="deep">
+      <div class="deep-head">
+        <h2 style="font-size:24px">Architecture deep dive</h2>
+        <p class="sub" style="margin-bottom:0">Everything below is read directly from the inference code in <a href="https://github.com/jacobf18/MatrixFormer/tree/main/src/matrixformer"><code>src/matrixformer</code></a> and the released expert configs.</p>
+        <nav class="toc">
+          <a href="#d-budget">Parameter budget</a>
+          <a href="#d-grid">Token grid</a>
+          <a href="#d-axial">Axial attention</a>
+          <a href="#d-block">Block anatomy</a>
+          <a href="#d-decoder">Decoder</a>
+          <a href="#d-scale">Scaling to large matrices</a>
+        </nav>
+      </div>
+
+      <!-- Budget -->
+      <h3 id="d-budget">Where the 78M parameters live</h3>
+      <p class="prose">Each expert has exactly 77,998,496 parameters. The eight transformer blocks hold 85% of them. The decoder is large too, because its last layer maps 1536 features to 5000 bin logits. The cell encoder is tiny: it only has to lift one scalar into a 768-dimensional token.</p>
+      <div class="budget" aria-label="Parameter budget by component">
+        <div class="b-enc" style="flex-basis:0.79%"></div>
+        <div class="b-blk" style="flex-basis:84.82%">8 blocks · 66.16M</div>
+        <div class="b-dec" style="flex-basis:14.39%">decoder · 11.23M</div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <tr><th>Component</th><th>Parameters</th><th>Share</th><th>What it contains</th></tr>
+          <tr><td><span class="dot d-enc"></span>Cell encoder</td><td class="num">612,864</td><td class="num">0.8%</td><td>Value MLP (1 → 768 → 768), mask token, 2 missingness embeddings, 12 + 12 CLS embeddings</td></tr>
+          <tr><td><span class="dot d-blk"></span>Each block</td><td class="num">8,269,827</td><td class="num">10.6%</td><td>Two attention layers (2.36M each), SwiGLU feed-forward (3.54M), 3 RMSNorms, 3 residual scales</td></tr>
+          <tr><td><span class="dot d-blk"></span>All 8 blocks</td><td class="num">66,158,616</td><td class="num">84.8%</td><td></td></tr>
+          <tr><td><span class="dot d-dec"></span>Decoder</td><td class="num">11,227,016</td><td class="num">14.4%</td><td>MLP 768 → 1536 → 1536 → 5000 with GELU</td></tr>
+        </table>
+      </div>
+
+      <!-- Token grid -->
+      <h3 id="d-grid">The token grid</h3>
+      <div class="two">
+        <div>
+          <p class="prose">An <i>R × C</i> input becomes an <i>(R + 12) × (C + 12)</i> grid of 768-dimensional tokens. There are no position embeddings at this stage; position enters later through RoPE inside attention.</p>
+          <ul class="facts">
+            <li><b>Observed cell:</b> its standardized value goes through <code>Linear(1, 768) → GELU → Linear(768, 768)</code>.</li>
+            <li><b>Missing cell:</b> replaced by one shared, learned <b>mask token</b>.</li>
+            <li><b>Every cell</b> then adds a <b>missingness embedding</b>, one of two learned vectors, so the model always knows which cells are real.</li>
+            <li><b>12 row-CLS tokens</b> are prepended to every row, and <b>12 column-CLS tokens</b> to every column. They are identical across rows (or columns) at input and become per-row and per-column summaries as attention runs.</li>
+            <li><b>Corner tokens</b> are the sum of a row-CLS and a column-CLS embedding.</li>
+          </ul>
+          <p class="prose">CLS tokens act as learned scratch registers. The decoder never reads them: it decodes only the <i>R × C</i> data cells.</p>
+        </div>
+        <div class="figure" style="padding:16px">
+          <svg id="gridSvg" viewBox="0 0 330 300" role="img" aria-label="Token grid layout with CLS bands" style="min-width:0"></svg>
+          <div class="legend" style="flex-wrap:wrap;margin-top:8px">
+            <span><i class="sw" style="background:var(--corner)"></i>Corner</span>
+            <span><i class="sw" style="background:var(--clsc)"></i>Column CLS</span>
+            <span><i class="sw" style="background:var(--clsr)"></i>Row CLS</span>
+            <span><i class="sw obs"></i>Observed</span>
+            <span><i class="sw mis"></i>Mask token</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Axial -->
+      <h3 id="d-axial">Axial attention: global context in one block</h3>
+      <p class="prose">Full attention over every cell would compare all <i>RC</i> tokens with each other. MatrixFormer instead factorizes attention along the two axes. Each block runs two separate attention layers with their own weights: first every row attends across its columns, then every column attends across its rows. After those two steps, a cell has seen its row, and through each cell in its column, every other row too. <b>A single block already has a receptive field covering the whole matrix.</b> Eight blocks repeat this mixing.</p>
+
+      <div class="axial">
+        <div class="figure" style="padding:16px">
+          <div class="tabs" role="tablist" id="axTabs" style="margin-bottom:10px">
+            <button class="tab" role="tab" aria-selected="true" data-step="1">1 · Row attention</button>
+            <button class="tab" role="tab" aria-selected="false" data-step="2">2 · Column attention</button>
+            <button class="tab" role="tab" aria-selected="false" data-step="3">Information after 1 block</button>
+          </div>
+          <div class="axgrid" id="axGrid"></div>
+          <p class="figcap" id="axCap" style="margin-bottom:0"></p>
+        </div>
+        <div>
+          <div class="table-wrap">
+            <table>
+              <tr><th colspan="2">Cost per block, 2000 × 1000 window</th></tr>
+              <tr><td>Full attention over all tokens</td><td class="num">4.1 × 10¹² pairs</td></tr>
+              <tr><td>Axial (rows, then columns)</td><td class="num">6.2 × 10⁹ pairs</td></tr>
+              <tr><td>Reduction</td><td class="num">≈ 670×</td></tr>
+            </table>
+          </div>
+          <p class="figcap">Token pairs scored by attention, including the 12 CLS rows and columns. Axial cost grows as <i>RC(R + C)</i> instead of <i>(RC)²</i>.</p>
+          <ul class="facts" style="margin-top:14px">
+            <li><b>16 heads</b> of width 48, bidirectional, no masking or dropout (PyTorch <code>scaled_dot_product_attention</code>).</li>
+            <li><b>Rotary position embeddings</b> on half of each head (the first 24 of 48 dimensions), base 10,000. The position is the row or column index within the window.</li>
+            <li><b>CLS tokens are not rotated.</b> RoPE starts after the 12 CLS positions, so they stay position-free registers.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Block -->
+      <h3 id="d-block">Block anatomy</h3>
+      <div class="two">
+        <div class="formula" style="font-size:14px">
+          <span class="c"># pre-norm residual updates; α are learned scalar gains</span><br>
+          h ← h + α<sub>row</sub> · RowAttn( RMSNorm₁(h) )<br>
+          h ← h + α<sub>col</sub> · ColAttn( RMSNorm₂(h) )<br><br>
+          <span class="c"># SwiGLU feed-forward, applied to every token independently</span><br>
+          n = RMSNorm₃(h)<br>
+          h ← h + α<sub>ffn</sub> · W<sub>out</sub>( SiLU(W<sub>gate</sub> n) ⊙ W<sub>val</sub> n )
+        </div>
+        <div>
+          <ul class="facts">
+            <li><b>Pre-norm with RMSNorm</b> (ε = 10⁻⁶) before each of the three sublayers.</li>
+            <li><b>Learned residual gains.</b> Each sublayer's output is multiplied by its own learned scalar α before it is added back, in the style of ReZero.</li>
+            <li><b>SwiGLU feed-forward</b> with hidden width 1536: a gated unit with separate gate and value projections.</li>
+            <li><b>Separate weights</b> for row attention and column attention in every block: 16 attention layers in total.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Decoder -->
+      <h3 id="d-decoder">Decoder: a distribution, not a point</h3>
+      <div class="two">
+        <div>
+          <p class="prose">For each data cell, a three-layer GELU MLP outputs 5000 logits. A softmax turns them into probabilities over 5000 value bins defined by fixed borders (<code>assets/borders.pt</code>), in units of column standard deviations. The imputed value is the mean of that distribution:</p>
+          <div class="formula" style="font-size:14px;margin:10px 0 14px">x̂ = Σ<sub>k</sub> softmax(logits)<sub>k</sub> · m<sub>k</sub></div>
+          <ul class="facts">
+            <li><b>Bins are not uniform.</b> About 300 bins cover each unit near the center, roughly 0.003 standard deviations wide. Half of all bins fall within ±4.2 standard deviations.</li>
+            <li><b>The range is wide:</b> borders run from −93 to +87 standard deviations, so outliers stay representable.</li>
+            <li><b>The two edge bins are open-ended tails.</b> Their representative values come from a half-normal fit rather than the bin midpoint.</li>
+            <li>The softmax and mean are always computed in <b>float32</b>, even under BF16 autocast.</li>
+          </ul>
+        </div>
+        <div class="figure" style="padding:16px">
+          <svg id="binSvg" viewBox="0 0 360 220" role="img" aria-label="Number of decoder bins per unit interval" style="min-width:0"></svg>
+          <p class="figcap" style="margin-bottom:0">Bin borders per one-standard-deviation interval, from −16 to +16. 37 borders lie outside this range.</p>
+        </div>
+      </div>
+
+      <!-- Scale -->
+      <h3 id="d-scale">Scaling to large matrices</h3>
+      <div class="cards">
+        <div class="card">
+          <h3>Global column normalization</h3>
+          <p>Means and population standard deviations come from the observed entries of the <i>whole</i> matrix before any windowing. An entirely missing column gets mean 0 and scale 1.</p>
+        </div>
+        <div class="card">
+          <h3>Overlapping windows</h3>
+          <p>Each axis is cut into windows of at most 2000 rows and 1000 columns. The last window is shifted back to end at the edge, so it overlaps its neighbor. Cells covered twice get the average of both predictions. For example, 4500 rows split into [0, 2000), [2000, 4000) and [2500, 4500).</p>
+        </div>
+        <div class="card">
+          <h3>Exact streaming</h3>
+          <p>Within a window, attention runs in batches of 32 rows or columns, the feed-forward in chunks of 8192 tokens, with in-place residual updates. Every sequence is still attended in full, so streaming bounds memory without changing the math.</p>
+        </div>
+      </div>
+      <p class="figcap" style="margin-top:14px">The hidden grid stays in float32 even under BF16 autocast: about 6.3 GB for a full 2000 × 1000 window, on top of the weights. Use smaller <code>max_rows</code> and <code>max_cols</code> to reduce it, at the cost of less context per window.</p>
+    </div>
+  </div>
+</section>
+
+<section id="training">
+  <div class="wrap">
+    <h2>Training</h2>
+    <p class="sub">Like prior-data fitted networks (TabPFN) and TabImpute, MatrixFormer never sees a real dataset during training. It learns from an endless stream of synthetic complete matrices, each masked into a reconstruction task. Details below follow Section 2 and Appendix A of the <a href="https://arxiv.org/abs/2610.06751">paper</a>.</p>
+
+    <!-- Phases -->
+    <h3 style="margin-top:8px">Three phases, one architecture</h3>
+    <p class="prose">Each phase continues from the best checkpoint of the previous one. Two frozen teacher models, trained beforehand from the base checkpoint, guide the main and size-extension phases.</p>
+    <div class="phases">
+      <div class="phase">
+        <div class="ph-tag">Phase 1</div>
+        <h4>Base</h4>
+        <div class="ph-num">17k updates</div>
+        <ul>
+          <li>Latent-factor matrices, rank 1–11</li>
+          <li>10–50 rows × 5–50 columns</li>
+          <li>40% MCAR missingness</li>
+          <li>AdamW, peak LR 2×10⁻⁴</li>
+        </ul>
+      </div>
+      <div class="phase ph-teach">
+        <div class="ph-tag">Side branch</div>
+        <h4>Teachers</h4>
+        <div class="ph-num">2 × 64k updates</div>
+        <ul>
+          <li>Two main-phase runs from the base model</li>
+          <li>One on the main data mixture, one on a continuous-spectrum variant</li>
+          <li>Trained on true values; best validation checkpoints frozen</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-tag">Phase 2</div>
+        <h4>Main</h4>
+        <div class="ph-num">128k updates</div>
+        <ul>
+          <li>Diverse spectral prior and missingness mechanisms</li>
+          <li>Teacher-distilled objective</li>
+          <li>Batches of 2 matrices, peak LR 10⁻⁵</li>
+          <li>Best checkpoint at 98k updates</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-tag">Phase 3</div>
+        <h4>Size extension</h4>
+        <div class="ph-num">5k updates</div>
+        <ul>
+          <li>Matrices grow in stages up to 2000 × 1000</li>
+          <li>20% of episodes stay at main-phase sizes</li>
+          <li>Peak LR 5×10⁻⁶</li>
+          <li>Selected after 4k updates</li>
+        </ul>
+      </div>
+    </div>
+    <p class="figcap">Size extension plays the role of context-length extension in language models. Attention cost grows with matrix size, so most training uses moderate sizes. A short final phase then adapts the model, including the range of its rotary positions, to large matrices.</p>
+
+    <div class="table-wrap" style="margin-top:16px">
+      <table>
+        <tr><th>Size-extension stage</th><th>Updates</th><th>Rows</th><th>Columns</th></tr>
+        <tr><td>Bridge</td><td class="num">1–500</td><td class="num">256–512</td><td class="num">128–256</td></tr>
+        <tr><td>Large</td><td class="num">501–1500</td><td class="num">512–1024</td><td class="num">256–512</td></tr>
+        <tr><td>Larger</td><td class="num">1501–3000</td><td class="num">768–1536</td><td class="num">384–768</td></tr>
+        <tr><td>Full</td><td class="num">3001–5000</td><td class="num">1024–2000</td><td class="num">512–1000</td></tr>
+      </table>
+    </div>
+
+    <!-- Synthetic prior -->
+    <h3>The synthetic data prior</h3>
+    <p class="prose">The main phase draws from four equally likely matrix families. Together they vary rank, the shape of the singular-value spectrum, the geometry of the singular vectors, matrix size, and which entries are observed.</p>
+    <div class="two">
+      <div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Family</th><th>Rank <span style="text-transform:none">k</span></th><th>Tail exponent <span style="text-transform:none">α</span></th></tr>
+            <tr><td><span class="dot" style="background:var(--f1)"></span>Low-rank</td><td class="num">2–16</td><td class="num">0.2–2</td></tr>
+            <tr><td><span class="dot" style="background:var(--f2)"></span>Slow tail</td><td class="num">2–160</td><td class="num">0–0.5</td></tr>
+            <tr><td><span class="dot" style="background:var(--f3)"></span>Steep tail</td><td class="num">2–160</td><td class="num">1–2.5</td></tr>
+            <tr><td><span class="dot" style="background:var(--f4)"></span>Latent factor</td><td class="num">1–11</td><td class="num">n/a</td></tr>
+          </table>
+        </div>
+        <p class="prose" style="margin-top:16px">The three <b>spectral families</b> build <code>T = U diag(s) Vᵀ</code> with orthonormal <code>U</code>, <code>V</code>. Each singular value blends a fast-decaying head with a power-law tail and a terminal taper:</p>
+        <div class="formula" style="font-size:13px;margin-bottom:12px">
+          w<sub>j</sub> = (1 − e<sup>−ω</sup>) e<sup>−t<sub>j</sub>/H</sup><br>
+          g<sub>j</sub> = [ w<sub>j</sub> e<sup>−(t<sub>j</sub>/h)<sup>p</sup></sup> + (1 − w<sub>j</sub>) τ (1 + t<sub>j</sub>)<sup>−α</sup> ] · e<sup>−λ (t<sub>j</sub>/(k−1))<sup>q</sup></sup><br>
+          s<sub>j</sub> = s<sub>max</sub> · g<sub>j</sub> / g<sub>1</sub>, &nbsp; t<sub>j</sub> = j − 1
+        </div>
+        <p class="prose">The input adds tiny Gaussian noise (σ ≤ 10⁻³), but the target keeps the full clean signal. The <b>latent-factor family</b> sets <code>T = PQᵀ</code>, with each factor vector drawn from a Gaussian, Laplace, Student-t, spike-and-slab or centered Dirichlet distribution. It is kept at base-phase sizes as rehearsal, because training on spectral matrices alone degraded performance on it.</p>
+      </div>
+      <div>
+        <div class="figure" style="padding:16px">
+          <div class="demo-head" style="margin-bottom:6px">
+            <div class="label"><b>Sampled spectra</b> · s<sub>j</sub> / s<sub>1</sub>, log scale</div>
+            <button class="copy" id="resample">Resample</button>
+          </div>
+          <svg id="specSvg" viewBox="0 0 360 230" role="img" aria-label="Example singular value spectra from the three spectral families" style="min-width:0"></svg>
+          <div class="legend" style="flex-wrap:wrap">
+            <span><i class="sw" style="background:var(--f1)"></i>Low-rank</span>
+            <span><i class="sw" style="background:var(--f2)"></i>Slow tail</span>
+            <span><i class="sw" style="background:var(--f3)"></i>Steep tail</span>
+          </div>
+          <p class="figcap" style="margin-bottom:0">Drawn live in your browser from the formula above with the paper's parameter ranges (Table 7), two draws per family. Rank is capped at 100 for display; each curve drops to zero after its rank k.</p>
+        </div>
+        <h4 class="mini-h">Singular-vector geometry</h4>
+        <p class="prose" style="font-size:15px;color:var(--muted)">Each axis independently picks one of four constructions before QR orthonormalization: <b>Gaussian</b> (a uniformly random basis), <b>coherent</b> (variation concentrated in a few rows), <b>smooth</b> (random cosine features) or <b>offset-bearing</b> (a near-constant first direction).</p>
+      </div>
+    </div>
+
+    <!-- Masking -->
+    <h3>From matrices to training episodes</h3>
+    <p class="prose">Each family is paired with one of two masking schemes, giving eight equally weighted components: fixed 40% MCAR, or a mixed kernel that samples a missingness mechanism per matrix. Missingness can therefore depend on the values themselves.</p>
+    <div class="masks" id="masks"></div>
+    <div class="two" style="margin-top:20px">
+      <div class="table-wrap">
+        <table>
+          <tr><th>Mixed mechanism</th><th>Probability</th></tr>
+          <tr><td>MCAR: missing completely at random</td><td class="num">0.30</td></tr>
+          <tr><td>MAR: depends on observed values</td><td class="num">0.20</td></tr>
+          <tr><td>MNAR: depends on the hidden values</td><td class="num">0.20</td></tr>
+          <tr><td>Censoring below or above a quantile</td><td class="num">0.10</td></tr>
+          <tr><td>Two-phase subsampling</td><td class="num">0.10</td></tr>
+          <tr><td>Skip logic</td><td class="num">0.05</td></tr>
+          <tr><td>Cluster-level missingness</td><td class="num">0.05</td></tr>
+        </table>
+      </div>
+      <div>
+        <ul class="facts">
+          <li><b>Missing rate:</b> 40% with probability 0.25, otherwise 0.05 + 0.7·B with B ~ Beta(2, 2), so it ranges from 5% to 75%.</li>
+          <li><b>Sparse-support thinning</b> in 75% of episodes mimics new users with few ratings. The matrix is transposed with probability ½, then 10–40% of rows are picked and keep observations in only a log-uniform 1–60% of columns. The loss is scored on those rows' hidden entries.</li>
+          <li><b>Normalization</b> applies one per-column affine map to both the masked input and the clean target. For sparsely observed columns the variance is shrunk toward the pooled within-column variance: (SS<sub>c</sub> + v̄) / (n<sub>c</sub> + 1).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Objective -->
+    <h3>Teacher–student objective</h3>
+    <p class="prose">The model is trained to predict a full distribution for every hidden entry. Its probabilistic terms are supervised by the true value. Its point prediction is instead <b>distilled toward two frozen teachers</b>: models with the same architecture that receive the same masked input. Their averaged predictive mean, with gradients stopped, becomes the point target.</p>
+    <div class="figure">
+      <svg viewBox="0 0 920 270" role="img" aria-label="Teacher-student training diagram">
+        <defs>
+          <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 10 5 0 10z" style="fill: var(--muted)"/>
+          </marker>
+        </defs>
+        <rect class="box" x="10" y="95" width="150" height="80" rx="10"/>
+        <text x="85" y="128" text-anchor="middle" font-size="13" font-weight="600">Masked episode</text>
+        <text x="85" y="148" text-anchor="middle" font-size="11.5" class="muted">synthetic X, mask M</text>
+
+        <path class="line" d="M160 120 C200 120 200 60 240 60" marker-end="url(#arr2)"/>
+        <path class="line" d="M160 150 C200 150 200 210 240 210" marker-end="url(#arr2)"/>
+
+        <rect class="boxa" x="244" y="28" width="170" height="64" rx="10" stroke-width="1.5"/>
+        <text x="329" y="56" text-anchor="middle" font-size="13" font-weight="600">Student θ</text>
+        <text x="329" y="75" text-anchor="middle" font-size="11.5" class="muted">being trained</text>
+
+        <rect class="box" x="244" y="170" width="170" height="80" rx="10" stroke-dasharray="4 3"/>
+        <text x="329" y="196" text-anchor="middle" font-size="13" font-weight="600">Teachers ψ₁, ψ₂</text>
+        <text x="329" y="214" text-anchor="middle" font-size="11.5" class="muted">frozen, same architecture</text>
+        <text x="329" y="232" text-anchor="middle" font-size="11.5" class="muted">mean of μ, stop-gradient</text>
+
+        <path class="line" d="M414 52 H520" marker-end="url(#arr2)"/>
+        <text x="467" y="44" text-anchor="middle" font-size="11" class="muted">distribution p</text>
+        <path class="line" d="M414 72 C470 72 470 130 520 130" marker-end="url(#arr2)"/>
+        <text x="455" y="112" text-anchor="middle" font-size="11" class="muted">mean μ</text>
+        <path class="line" d="M414 210 C470 210 470 150 520 150" marker-end="url(#arr2)"/>
+        <text x="455" y="196" text-anchor="middle" font-size="11" class="muted">μ̄</text>
+
+        <rect class="box" x="524" y="24" width="210" height="58" rx="8"/>
+        <text x="629" y="48" text-anchor="middle" font-size="12.5" font-weight="600">−log p(y) + 0.05 · CDF loss</text>
+        <text x="629" y="68" text-anchor="middle" font-size="11" class="muted">against the true value y</text>
+
+        <rect class="box" x="524" y="110" width="210" height="58" rx="8" style="stroke: var(--specialist)"/>
+        <text x="629" y="134" text-anchor="middle" font-size="12.5" font-weight="600">2 · Huber(μ − μ̄)</text>
+        <text x="629" y="154" text-anchor="middle" font-size="11" class="muted">point loss vs. teacher mean</text>
+
+        <rect class="box" x="760" y="60" width="128" height="84" rx="10"/>
+        <text x="824" y="94" text-anchor="middle" font-size="13" font-weight="600">Σ over hidden</text>
+        <text x="824" y="112" text-anchor="middle" font-size="13" font-weight="600">scored entries</text>
+        <text x="824" y="130" text-anchor="middle" font-size="11" class="muted">mean per matrix</text>
+        <path class="line" d="M734 53 C748 53 748 90 758 90" marker-end="url(#arr2)"/>
+        <path class="line" d="M734 139 C748 139 748 115 758 115" marker-end="url(#arr2)"/>
+      </svg>
+    </div>
+    <div class="two" style="margin-top:20px">
+      <div class="formula" style="font-size:13.5px">
+        <span class="c"># per scored hidden entry, averaged over the set S</span><br>
+        L = −log p<sub>θ</sub>(y)<br>
+        &nbsp;&nbsp;+ 2 · ρ( μ<sub>θ</sub> − sg[ ½(μ<sub>ψ₁</sub> + μ<sub>ψ₂</sub>) ] )<br>
+        &nbsp;&nbsp;+ 0.05 · (1/O) Σ<sub>k</sub> ( F<sub>θ</sub>(b̃<sub>k</sub>) − 1{y ≤ b̃<sub>k</sub>} )²<br><br>
+        <span class="c"># ρ = Huber loss with threshold 1</span>
+      </div>
+      <ul class="facts">
+        <li><b>Negative log-likelihood</b> of the true value under the bar distribution trains the full predictive density.</li>
+        <li><b>CDF alignment</b> is a ranked probability score at the 5000 bin midpoints, a discrete form of CRPS.</li>
+        <li><b>Huber, not squared error,</b> for the point term: with squared error, a few extreme residuals dominated the point loss.</li>
+        <li><b>Teachers are training-only.</b> Inference is a single forward pass of one model.</li>
+      </ul>
+    </div>
+
+    <h3>Optimization</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Setting</th><th>Main phase</th><th>Size extension</th></tr>
+        <tr><td>Optimizer</td><td>AdamW, β = (0.9, 0.999), weight decay 0.02</td><td>same</td></tr>
+        <tr><td>Gradient clipping</td><td class="num">0.5</td><td class="num">0.5</td></tr>
+        <tr><td>Peak learning rate</td><td class="num">1 × 10⁻⁵</td><td class="num">5 × 10⁻⁶</td></tr>
+        <tr><td>Schedule</td><td>600 warmup updates, cosine to 5%</td><td>200 warmup updates, cosine to 5%</td></tr>
+        <tr><td>Batch</td><td>2 matrices</td><td>2 matrices, accumulated serially</td></tr>
+        <tr><td>Precision</td><td colspan="2">FP32 parameters and Adam moments, BF16 compute</td></tr>
+        <tr><td>Model selection</td><td>lowest macro RMSE on a fixed synthetic validation suite</td><td>best large-matrix error, with ≤ 3% loss on main-size matrices</td></tr>
+      </table>
+    </div>
+
+    <!-- RecSys -->
+    <h3 id="recsys-training">The recommender specialist: MatrixFormer-RecSys</h3>
+    <p class="prose">MatrixFormer-RecSys shares the architecture and differs only in its weights. It is fine-tuned on synthetic <i>rating</i> matrices that look like recommender data: very sparse, with heterogeneous users and popular items. The settings below come from the released checkpoint's <a href="https://huggingface.co/Tabimpute/TabImpute/blob/main/matrixformer/recsys/config.json">config</a>; the paper describes this expert only briefly.</p>
+    <div class="two">
+      <ul class="facts">
+        <li><b>Synthetic only:</b> no real ratings in any gradient update, and model selection used inner synthetic validation only.</li>
+        <li><b>Rating episodes</b> of 1000 × 1000 with only 0.4%–8% of entries observed, drawn from mixed user-preference families.</li>
+        <li><b>Realistic noise:</b> per-user noise levels and power-law item popularity.</li>
+        <li><b>Recommender normalization:</b> two-way (user and item) centering with per-user scaling.</li>
+      </ul>
+      <ul class="facts">
+        <li><b>Objective:</b> point loss on expected rating RMSE, plus small weights on NLL (0.1), MAE (0.1) and a ranking term (0.05).</li>
+        <li><b>Short fine-tune:</b> 400 updates at learning rate 5 × 10⁻⁶ from an earlier recommender checkpoint.</li>
+        <li><b>User-balanced</b> query sampling, and the released weights are an exponential moving average (decay 0.95).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="blend">
+  <div class="wrap">
+    <h2>MatrixFormer+: a two-expert blend</h2>
+    <p class="sub">MatrixFormer+ runs two experts with the same architecture: a <b style="color:var(--general)">general</b> imputation model and a <b style="color:var(--specialist)">recommender-system specialist</b> trained on sparse, rating-like matrices. It then picks one mixing weight for your matrix from how well each expert reconstructs the entries you did observe.</p>
+
+    <div class="blend">
+      <div>
+        <div class="formula">
+          <span class="c"># per-cell errors on observed entries, column-standardized</span><br>
+          e<sub>g</sub> = (<span class="g">general</span> − x) / σ<br>
+          e<sub>s</sub> = (<span class="s">specialist</span> − x) / σ<br><br>
+          <span class="c"># least-squares weight, clipped to [0, 1]</span><br>
+          w = clip( −e<sub>g</sub>·(e<sub>s</sub>−e<sub>g</sub>) / ‖e<sub>s</sub>−e<sub>g</sub>‖², 0, 1 )<br><br>
+          <span class="c"># final completion</span><br>
+          x̂ = (1 − w)·<span class="g">general</span> + w·<span class="s">specialist</span>
+        </div>
+        <p class="figcap">This is a closed-form fit of one number per matrix. No neural network weights change, and no held-out values are used.</p>
+      </div>
+      <div class="slider-box">
+        <label for="w">Specialist weight <code>w</code> = <b id="wv">0.35</b></label>
+        <input type="range" id="w" min="0" max="100" value="35">
+        <div class="mix" aria-hidden="true">
+          <div class="mg" id="mg" style="flex-basis:65%">general 65%</div>
+          <div class="ms" id="ms" style="flex-basis:35%">specialist 35%</div>
+        </div>
+        <p class="mix-cap" id="wcap">Both experts contribute. MatrixFormer+ reports the fitted weight in <code>model.last_decision["specialist_weight"]</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quickstart">
+  <div class="wrap">
+    <h2>Quickstart</h2>
+    <p class="sub">Needs Python 3.10+, PyTorch 2.4+, NumPy and <code>huggingface-hub</code>. Weights download automatically from Hugging Face on first use. A GPU is optional.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-panel="p-install">Install</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="p-python">Python</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="p-cli">Command line</button>
+    </div>
+
+    <div class="panel" id="p-install">
+      <div class="code">
+        <div class="bar"><span>bash · CPU setup</span><button class="copy">Copy</button></div>
+<pre>git clone https://github.com/jacobf18/MatrixFormer.git
+cd MatrixFormer
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install "torch&gt;=2.4,&lt;3" --index-url https://download.pytorch.org/whl/cpu
+python -m pip install .
+python -m matrixformer --device cpu --precision float32   <span class="tk-c"># runs a small demo</span></pre>
+      </div>
+      <p class="figcap">For an NVIDIA GPU, install PyTorch from the <a href="https://pytorch.org/get-started/locally/">PyTorch selector</a> instead. See the <a href="https://github.com/jacobf18/MatrixFormer#install-and-first-run">README</a> for Windows and troubleshooting.</p>
+    </div>
+
+    <div class="panel" id="p-python" hidden>
+      <div class="code">
+        <div class="bar"><span>python</span><button class="copy">Copy</button></div>
+<pre><span class="tk-k">import</span> numpy <span class="tk-k">as</span> np
+<span class="tk-k">from</span> matrixformer <span class="tk-k">import</span> MatrixFormerPlus
+
+matrix = np.array([
+    [<span class="tk-n">1.0</span>, <span class="tk-n">2.0</span>, np.nan],
+    [<span class="tk-n">2.0</span>, np.nan, <span class="tk-n">6.0</span>],
+    [<span class="tk-n">3.0</span>, <span class="tk-n">6.0</span>, <span class="tk-n">9.0</span>],
+])
+
+model = MatrixFormerPlus.<span class="tk-f">from_pretrained</span>(device=<span class="tk-s">"cpu"</span>, precision=<span class="tk-s">"float32"</span>)
+completed = model.<span class="tk-f">impute</span>(matrix)
+
+<span class="tk-f">print</span>(completed)
+<span class="tk-f">print</span>(model.last_decision)   <span class="tk-c"># blend weight and reconstruction errors</span></pre>
+      </div>
+      <p class="figcap">Use <code>device="cuda"</code> on a GPU, where the default <code>amp_bfloat16</code> precision is used. Reuse the model object across matrices.</p>
+    </div>
+
+    <div class="panel" id="p-cli" hidden>
+      <div class="code">
+        <div class="bar"><span>bash</span><button class="copy">Copy</button></div>
+<pre>python -m matrixformer --input matrix.npy --output completed.npy \
+    --device cpu --precision float32</pre>
+      </div>
+      <p class="figcap">Input is a <code>.npy</code> array with <code>NaN</code> for missing entries. Add <code>--model impute</code> or <code>--model recsys</code> to run a single expert, or <code>--download-only --local-dir ./checkpoints</code> to prepare an offline bundle.</p>
+    </div>
+
+    <div class="two" style="margin-top:32px">
+      <div>
+        <h3 style="margin-top:0">Choose a model</h3>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Model</th><th>Experts</th><th>Weights</th></tr>
+            <tr><td><code>MatrixFormerPlus</code><br><span style="color:var(--muted);font-size:13px">default · <code>--model plus</code></span></td><td>General + specialist, blended</td><td class="num">~624 MB</td></tr>
+            <tr><td><code>MatrixFormerImpute</code><br><span style="color:var(--muted);font-size:13px"><code>--model impute</code></span></td><td>General only</td><td class="num">~312 MB</td></tr>
+            <tr><td><code>MatrixFormerRecSys</code><br><span style="color:var(--muted);font-size:13px"><code>--model recsys</code></span></td><td>Recommender specialist only (<a href="#recsys-training">how it was trained</a>)</td><td class="num">~312 MB</td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Architecture at a glance</h3>
+        <div class="table-wrap">
+          <table>
+            <tr><td>Parameters per expert</td><td class="num">77,998,496</td></tr>
+            <tr><td>Blocks · width · heads</td><td class="num">8 · 768 · 16</td></tr>
+            <tr><td>Feed-forward width</td><td class="num">1536 (SwiGLU)</td></tr>
+            <tr><td>Output bins</td><td class="num">5000</td></tr>
+            <tr><td>Default context window</td><td class="num">2000 × 1000</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h3>Good to know</h3>
+    <ul style="color:var(--muted);font-size:15px;margin:0;padding-left:20px">
+      <li>Mark missing values with <code>np.nan</code>. Zeros and sentinels like <code>-999</code> are treated as observed.</li>
+      <li>Matrices larger than the context window are processed in overlapping windows; normalization uses the whole matrix.</li>
+      <li>Predictions are point estimates (means), not calibrated uncertainty intervals.</li>
+      <li>This package uses a generic column-normalized recipe. It does not include the benchmark-specific preprocessing behind some paper tables, so results there are not reproduced exactly. Benchmark results are in the <a href="https://arxiv.org/abs/2610.06751">paper</a>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <h2>Citation</h2>
+    <p class="sub">If you use MatrixFormer, please cite the paper.</p>
+    <div class="code">
+      <div class="bar"><span>bibtex</span><button class="copy">Copy</button></div>
+<pre>@misc{saha2026matrixformerfoundationmodelmatrix,
+  title={MatrixFormer: A Foundation Model for Matrix Completion},
+  author={Dwaipayan Saha and Jacob Feitelberg and Kyuseong Choi and Raaz Dwivedi and Anish Agarwal},
+  year={2026},
+  eprint={2610.06751},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2610.06751}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>MatrixFormer · <a href="https://github.com/jacobf18/MatrixFormer">GitHub</a> · <a href="https://huggingface.co/Tabimpute/TabImpute">Hugging Face</a> · <a href="https://arxiv.org/abs/2610.06751">arXiv</a></span>
+    <span><a href="https://jacobf18.github.io">Jacob Feitelberg</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Theme toggle (remembered per viewer; page works without storage)
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("mf-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    var cur = root.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("mf-theme", next); } catch (e) {}
+  });
+
+  // Deterministic PRNG so the demo looks the same on every load
+  var seed = 7;
+  function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+  // Synthetic rank-2 matrix, 12 x 9
+  var R = 12, C = 9, M = [];
+  var u1 = [], u2 = [], v1 = [], v2 = [];
+  for (var i = 0; i < R; i++) { u1.push(rand() * 2 - 1); u2.push(rand() * 2 - 1); }
+  for (var j = 0; j < C; j++) { v1.push(rand() * 2 - 1); v2.push(rand() * 2 - 1); }
+  var lo = Infinity, hi = -Infinity;
+  for (i = 0; i < R; i++) {
+    M.push([]);
+    for (j = 0; j < C; j++) {
+      var x = 3 + 1.6 * u1[i] * v1[j] + 0.9 * u2[i] * v2[j];
+      M[i].push(x); lo = Math.min(lo, x); hi = Math.max(hi, x);
+    }
+  }
+  // 30 missing cells
+  var idx = []; for (i = 0; i < R * C; i++) idx.push(i);
+  for (i = idx.length - 1; i > 0; i--) { var k = Math.floor(rand() * (i + 1)); var t = idx[i]; idx[i] = idx[k]; idx[k] = t; }
+  var missing = {}; idx.slice(0, 30).forEach(function (n) { missing[n] = true; });
+
+  function color(x) {
+    // indigo -> amber ramp, readable with dark cell text in both themes
+    var t = (x - lo) / (hi - lo);
+    var a = [165, 180, 252], m = [134, 223, 196], b = [252, 211, 77];
+    if (t < 0.5) { b = m; t = t * 2; } else { a = m; t = (t - 0.5) * 2; }
+    var c = a.map(function (v, q) { return Math.round(v + (b[q] - v) * t); });
+    return "rgb(" + c.join(",") + ")";
+  }
+
+  var grid = document.getElementById("grid"), cells = [];
+  for (i = 0; i < R; i++) for (j = 0; j < C; j++) {
+    var d = document.createElement("div");
+    var n = i * C + j;
+    d.className = "cell" + (missing[n] ? " missing" : "");
+    d.style.backgroundColor = color(M[i][j]);
+    d.textContent = M[i][j].toFixed(1);
+    grid.appendChild(d); cells.push(d);
+  }
+
+  var btn = document.getElementById("runBtn"), label = document.getElementById("demoLabel");
+  var done = false;
+  btn.addEventListener("click", function () {
+    if (done) {
+      cells.forEach(function (c, n) { if (missing[n]) { c.classList.add("missing"); c.classList.remove("filled"); } });
+      done = false; btn.textContent = "Complete matrix";
+      label.innerHTML = "<b>12 × 9</b> matrix · <b>30</b> missing";
+      return;
+    }
+    btn.disabled = true;
+    var order = idx.slice(0, 30);
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    order.forEach(function (n, q) {
+      setTimeout(function () {
+        var c = cells[n];
+        c.classList.remove("missing"); c.classList.add("filled");
+        if (!reduce) { c.classList.add("pop"); setTimeout(function () { c.classList.remove("pop"); }, 300); }
+        if (q === order.length - 1) {
+          btn.disabled = false; btn.textContent = "Reset"; done = true;
+          label.innerHTML = "<b>12 × 9</b> matrix · <b>30</b> imputed";
+        }
+      }, reduce ? 0 : 60 * q);
+    });
+  });
+
+  // Small matrices in the architecture diagram
+  var NS = "http://www.w3.org/2000/svg";
+  function mini(gid, x0, filled) {
+    var g = document.getElementById(gid), s = 18, gap = 3;
+    var miss = [[0,2],[1,0],[1,3],[2,1],[3,2],[4,0],[4,3],[2,3]];
+    for (var r = 0; r < 6; r++) for (var c = 0; c < 4; c++) {
+      var rect = document.createElementNS(NS, "rect");
+      rect.setAttribute("x", x0 + c * (s + gap)); rect.setAttribute("y", 64 + r * (s + gap));
+      rect.setAttribute("width", s); rect.setAttribute("height", s); rect.setAttribute("rx", 3);
+      var isMiss = miss.some(function (m) { return m[0] === r && m[1] === c; });
+      if (isMiss && !filled) rect.setAttribute("fill", "url(#hatch)");
+      else rect.setAttribute("fill", color(M[r][c]));
+      if (isMiss && filled) { rect.setAttribute("stroke-width", "2"); rect.style.stroke = "var(--text)"; }
+      g.appendChild(rect);
+    }
+  }
+  mini("inMatrix", 28, false);
+  mini("outMatrix", 870, true);
+
+  // Bin histogram in the decoder box
+  var h = document.getElementById("hist");
+  for (var b = 0; b < 22; b++) {
+    var z = (b - 11) / 4, height = 46 * Math.exp(-z * z / 2) + 2;
+    var bar = document.createElementNS(NS, "rect");
+    bar.setAttribute("x", 692 + b * 5); bar.setAttribute("y", 186 - height);
+    bar.setAttribute("width", 4); bar.setAttribute("height", height); bar.setAttribute("rx", 1);
+    bar.style.fill = "var(--accent)"; bar.style.opacity = b === 11 ? 1 : .55;
+    h.appendChild(bar);
+  }
+
+  // Token grid layout: 3 drawn CLS rows/cols stand for 12
+  (function () {
+    var svg = document.getElementById("gridSvg");
+    svg.setAttribute("viewBox", "0 0 350 330");
+    var s = 24, g = 3, x0 = 46, y0 = 40, K = 3, DR = 7, DC = 8;
+    function el(name, attrs) { var e = document.createElementNS(NS, name); for (var a in attrs) e.setAttribute(a, attrs[a]); svg.appendChild(e); return e; }
+    for (var r = 0; r < K + DR; r++) for (var c = 0; c < K + DC; c++) {
+      var x = x0 + c * (s + g), y = y0 + r * (s + g), fill;
+      if (r < K && c < K) fill = "var(--corner)";
+      else if (r < K) fill = "var(--clsc)";
+      else if (c < K) fill = "var(--clsr)";
+      else fill = (rand() < 0.3) ? "url(#hatch2)" : color(M[(r - K) % R][(c - K) % C]);
+      var rect = el("rect", { x: x, y: y, width: s, height: s, rx: 3 });
+      rect.style.fill = fill;
+    }
+    var defs = el("defs", {});
+    defs.innerHTML = '<pattern id="hatch2" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" style="fill: var(--missing)"/><line x1="0" y1="0" x2="0" y2="5" style="stroke: var(--hatch)" stroke-width="2"/></pattern>';
+    var w3 = K * (s + g) - g, wD = DC * (s + g) - g, hD = DR * (s + g) - g;
+    el("text", { x: x0 + w3 / 2, y: y0 - 10, "text-anchor": "middle" }).textContent = "12";
+    el("text", { x: x0 + K * (s + g) + wD / 2, y: y0 - 10, "text-anchor": "middle" }).textContent = "C data columns";
+    el("text", { x: x0 - 10, y: y0 + w3 / 2 + 4, "text-anchor": "end" }).textContent = "12";
+    var t = el("text", { x: 0, y: 0, "text-anchor": "middle", transform: "translate(" + (x0 - 14) + "," + (y0 + K * (s + g) + hD / 2) + ") rotate(-90)" });
+    t.textContent = "R data rows";
+  })();
+
+  // Axial attention explorer
+  (function () {
+    var AR = 7, AC = 10, sel = [3, 4], step = 1;
+    var box = document.getElementById("axGrid"), cap = document.getElementById("axCap"), list = [];
+    for (var r = 0; r < AR; r++) for (var c = 0; c < AC; c++) {
+      var d = document.createElement("div");
+      d.dataset.r = r; d.dataset.c = c; box.appendChild(d); list.push(d);
+    }
+    var caps = {
+      1: "Row attention: the selected cell attends to every cell in its row (and the row's 12 CLS tokens). Click any cell to move the selection.",
+      2: "Column attention: it then attends to every cell in its column (blue). Each of those already absorbed its own row in step 1 (orange), so their information arrives indirectly.",
+      3: "So after one block, information from every cell in the matrix can reach the selected cell."
+    };
+    function draw() {
+      list.forEach(function (d) {
+        var r = +d.dataset.r, c = +d.dataset.c, cls = "";
+        if (r === sel[0] && c === sel[1]) cls = "sel";
+        else if (step === 1 && r === sel[0]) cls = "hl";
+        else if (step === 2 && c === sel[1]) cls = "hl";
+        else if (step === 2 && r !== sel[0]) cls = "hl2";
+        else if (step === 3) cls = "hl";
+        d.className = cls;
+      });
+      cap.textContent = caps[step];
+    }
+    box.addEventListener("click", function (e) {
+      if (!e.target.dataset.r) return;
+      sel = [+e.target.dataset.r, +e.target.dataset.c]; draw();
+    });
+    var tabs2 = document.querySelectorAll("#axTabs .tab");
+    tabs2.forEach(function (t) {
+      t.addEventListener("click", function () {
+        tabs2.forEach(function (o) { o.setAttribute("aria-selected", "false"); });
+        t.setAttribute("aria-selected", "true"); step = +t.dataset.step; draw();
+      });
+    });
+    draw();
+  })();
+
+  // Decoder bin density (borders per unit interval, from assets/borders.pt)
+  (function () {
+    var counts = [9,13,20,31,43,70,106,143,168,201,235,262,285,298,301,302,299,299,304,290,263,229,196,162,141,102,70,48,32,20,13,9];
+    var svg = document.getElementById("binSvg"), x0 = 40, y0 = 14, W = 308, H = 170, bw = W / counts.length, max = 320;
+    function el(name, attrs) { var e = document.createElementNS(NS, name); for (var a in attrs) e.setAttribute(a, attrs[a]); svg.appendChild(e); return e; }
+    [0, 100, 200, 300].forEach(function (v) {
+      var y = y0 + H - v / max * H;
+      var l = el("line", { x1: x0, x2: x0 + W, y1: y, y2: y }); l.style.stroke = "var(--border)";
+      el("text", { x: x0 - 6, y: y + 4, "text-anchor": "end" }).textContent = v;
+    });
+    counts.forEach(function (v, i) {
+      var h = v / max * H;
+      var r = el("rect", { x: x0 + i * bw + 1, y: y0 + H - h, width: bw - 2, height: h, rx: 1.5 });
+      r.style.fill = "var(--accent)";
+      var tt = document.createElementNS(NS, "title"); tt.textContent = "[" + (i - 16) + ", " + (i - 15) + "): " + v + " borders"; r.appendChild(tt);
+    });
+    [-16, -8, 0, 8, 16].forEach(function (v) {
+      el("text", { x: x0 + (v + 16) * bw, y: y0 + H + 16, "text-anchor": "middle" }).textContent = v;
+    });
+    el("text", { x: x0 + W / 2, y: y0 + H + 32, "text-anchor": "middle" }).textContent = "standardized value (column standard deviations)";
+  })();
+
+  // Synthetic spectra (paper eq. for the spectral prior, Table 7 ranges)
+  (function () {
+    var svg = document.getElementById("specSvg"); if (!svg) return;
+    var x0 = 44, y0 = 10, W = 300, H = 180, KMAX = 100, LOGMIN = -6;
+    function U(a, b) { return a + (b - a) * Math.random(); }
+    function UI(a, b) { return Math.floor(U(a, b + 1)); }
+    function spectrum(fam) {
+      var k = fam === 0 ? UI(2, 16) : UI(2, KMAX);
+      var alpha = fam === 0 ? U(0.2, 2) : fam === 1 ? U(0, 0.5) : U(1, 2.5);
+      var om = U(0, 3), h = U(1, 30), p = U(1, 3), Hs = U(1, 20), tau = U(0.2, 1), lam = U(0, 1), q = U(1, 4);
+      var g = [];
+      for (var j = 1; j <= k; j++) {
+        var t = j - 1, w = (1 - Math.exp(-om)) * Math.exp(-t / Hs);
+        var head = w * Math.exp(-Math.pow(t / h, p)), tail = (1 - w) * tau * Math.pow(1 + t, -alpha);
+        var taper = k > 1 ? Math.exp(-lam * Math.pow(t / (k - 1), q)) : 1;
+        g.push((head + tail) * taper);
+      }
+      g.sort(function (a, b) { return b - a; });
+      return g.map(function (v) { return v / g[0]; });
+    }
+    function el(name, attrs, parent) { var e = document.createElementNS(NS, name); for (var a in attrs) e.setAttribute(a, attrs[a]); (parent || svg).appendChild(e); return e; }
+    function X(j) { return x0 + Math.log(j) / Math.log(KMAX + 1) * W; }
+    function Y(v) { var l = Math.max(Math.log10(v), LOGMIN); return y0 + (-l) / (-LOGMIN) * H; }
+    function draw() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      for (var e = 0; e >= LOGMIN; e -= 2) {
+        var y = Y(Math.pow(10, e));
+        el("line", { x1: x0, x2: x0 + W, y1: y, y2: y }).style.stroke = "var(--border)";
+        el("text", { x: x0 - 6, y: y + 4, "text-anchor": "end" }).textContent = e === 0 ? "1" : "1e" + e;
+      }
+      [1, 2, 5, 10, 20, 50, 100].forEach(function (j) { el("text", { x: X(j), y: y0 + H + 16, "text-anchor": "middle" }).textContent = j; });
+      el("text", { x: x0 + W / 2, y: y0 + H + 34, "text-anchor": "middle" }).textContent = "singular value index j (log scale)";
+      ["--f1", "--f2", "--f3"].forEach(function (c, fam) {
+        for (var d = 0; d < 2; d++) {
+          var s = spectrum(fam), pts = s.map(function (v, i) { return X(i + 1).toFixed(1) + "," + Y(v).toFixed(1); });
+          pts.push(X(s.length + 1).toFixed(1) + "," + Y(0).toFixed(1));
+          var pl = el("polyline", { points: pts.join(" "), fill: "none", "stroke-width": 2, "stroke-linejoin": "round" });
+          pl.style.stroke = "var(" + c + ")"; pl.style.opacity = d ? .65 : 1;
+        }
+      });
+    }
+    draw();
+    document.getElementById("resample").addEventListener("click", draw);
+  })();
+
+  // Illustrative missingness patterns
+  (function () {
+    var host = document.getElementById("masks"); if (!host) return;
+    var R2 = 10, C2 = 12;
+    var vals = []; for (var i = 0; i < R2; i++) { vals.push([]); for (var j = 0; j < C2; j++) vals[i].push(M[i % R][j % C]); }
+    var pats = [
+      ["MCAR", "each entry hidden independently", function (r, c) { return rand() < 0.4; }],
+      ["Censoring (MNAR)", "values above a quantile hidden", function (r, c) { return vals[r][c] > 3.45; }],
+      ["Cluster-level", "whole blocks go missing", function (r, c) { return (r >= 2 && r < 5 && c >= 3 && c < 8) || (r >= 6 && r < 9 && c >= 8); }],
+      ["Sparse-support rows", "a few rows keep very few entries", function (r, c) { return (r === 1 || r === 4 || r === 8) ? rand() < 0.85 : rand() < 0.15; }]
+    ];
+    pats.forEach(function (p) {
+      var card = document.createElement("div"); card.className = "mask-card";
+      var g = document.createElement("div"); g.className = "mg2";
+      for (var r = 0; r < R2; r++) for (var c = 0; c < C2; c++) { var cell = document.createElement("i"); if (p[2](r, c)) cell.className = "m"; g.appendChild(cell); }
+      card.appendChild(g);
+      var b = document.createElement("b"); b.textContent = p[0]; card.appendChild(b);
+      var sp = document.createElement("span"); sp.textContent = p[1]; card.appendChild(sp);
+      host.appendChild(card);
+    });
+  })();
+
+  // Blend slider
+  var w = document.getElementById("w"), wv = document.getElementById("wv");
+  var mg = document.getElementById("mg"), ms = document.getElementById("ms"), wcap = document.getElementById("wcap");
+  function upd() {
+    var p = +w.value;
+    wv.textContent = (p / 100).toFixed(2);
+    mg.style.flexBasis = (100 - p) + "%"; ms.style.flexBasis = p + "%";
+    mg.textContent = p < 90 ? "general " + (100 - p) + "%" : "";
+    ms.textContent = p > 10 ? "specialist " + p + "%" : "";
+    wcap.innerHTML = p === 0 ? "w = 0: only the general expert's predictions are used."
+      : p === 100 ? "w = 1: only the specialist's predictions are used."
+      : "Both experts contribute. MatrixFormer+ reports the fitted weight in <code>model.last_decision[\"specialist_weight\"]</code>.";
+  }
+  w.addEventListener("input", upd); upd();
+
+  // Tabs
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () {
+      tabs.forEach(function (o) { o.setAttribute("aria-selected", "false"); document.getElementById(o.dataset.panel).hidden = true; });
+      t.setAttribute("aria-selected", "true"); document.getElementById(t.dataset.panel).hidden = false;
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var text = b.closest(".code").querySelector("pre").innerText;
+      navigator.clipboard.writeText(text).then(function () {
+        b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1400);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -53,9 +53,10 @@ def download_checkpoints(local_dir=None, *, model="plus", cache_dir=None):
     With local_dir, preserve the Hugging Face matrixformer/{impute,recsys}
     directory layout for subsequent offline loading. Otherwise use the Hub cache.
     """
-    if model not in {"plus", "impute"}:
-        raise ValueError("model must be 'plus' or 'impute'")
-    names = ("impute", "recsys") if model == "plus" else ("impute",)
+    expert_names = {"plus": ("impute", "recsys"), "impute": ("impute",), "recsys": ("recsys",)}
+    if model not in expert_names:
+        raise ValueError("model must be 'plus', 'impute', or 'recsys'")
+    names = expert_names[model]
     if local_dir is None:
         return resolve_experts(names, cache_dir=cache_dir)
     metadata = manifest()

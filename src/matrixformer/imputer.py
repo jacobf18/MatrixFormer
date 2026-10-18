@@ -108,18 +108,31 @@ class _PretrainedImputer:
         return cls(experts)
 
 
-class MatrixFormerImpute(_PretrainedImputer):
+class _SingleExpertImputer(_PretrainedImputer):
+    def impute(self, matrix):
+        """Complete a 2D numerical matrix, preserving every observed entry."""
+        matrix = prepare_matrix(matrix)
+        (expert,) = self._experts.values()
+        completed = expert.impute(matrix.copy(order="K"))
+        if not np.isfinite(completed).all():
+            raise ValueError("Nonfinite expert predictions; check input magnitudes and scaling")
+        return completed
+
+
+class MatrixFormerImpute(_SingleExpertImputer):
     """The single frozen general-purpose expert."""
 
     _expert_names = ("impute",)
 
-    def impute(self, matrix):
-        """Complete a 2D numerical matrix, preserving every observed entry."""
-        matrix = prepare_matrix(matrix)
-        completed = self._experts["impute"].impute(matrix.copy(order="K"))
-        if not np.isfinite(completed).all():
-            raise ValueError("Nonfinite expert predictions; check input magnitudes and scaling")
-        return completed
+
+class MatrixFormerRecSys(_SingleExpertImputer):
+    """The single frozen recommender-system expert.
+
+    Inputs use the same generic column normalization as the other models, not
+    the paper's rating recipe (bias centering and shrunk user scales).
+    """
+
+    _expert_names = ("recsys",)
 
 
 class MatrixFormerPlus(_PretrainedImputer):

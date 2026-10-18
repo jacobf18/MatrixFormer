@@ -11,6 +11,7 @@ normalization, and blending code lives here. It does not import `tabimpute`,
 depend on the `tabular` repository, or contain datasets, training jobs, or
 benchmark infrastructure.
 
+- [Project page](https://jacobf18.github.io/MatrixFormer/)
 - [Hugging Face weights and configs](https://huggingface.co/Tabimpute/TabImpute)
 - [Paper](https://arxiv.org/abs/2610.06751)
 - [Paper source](https://github.com/jacobf18/MatrixFormerPaper)
@@ -62,9 +63,12 @@ editing the code. After installation, you can run it from any directory.
 | --- | --- | --- | --- |
 | MatrixFormer+ | `MatrixFormerPlus` | `--model plus` (default) | Both experts, about 624 MB |
 | MatrixFormer-Impute | `MatrixFormerImpute` | `--model impute` | General expert only, about 312 MB |
+| MatrixFormer-RecSys | `MatrixFormerRecSys` | `--model recsys` | Recommender expert only, about 312 MB |
 
 Start with MatrixFormer+ for the two-model blend, or choose MatrixFormer-Impute
-to run just the general model with lower weight memory requirements. The
+to run just the general model with lower weight memory requirements.
+MatrixFormer-RecSys runs just the recommender specialist, which was fine-tuned
+on sparse synthetic rating matrices. The
 Hugging Face repository is named `Tabimpute/TabImpute` for historical reasons;
 the MatrixFormer files are under its `matrixformer/` directory. There is no
 separate MatrixFormer+ checkpoint.
@@ -123,6 +127,20 @@ completed = model.impute(matrix)
 
 Loading MatrixFormer-Impute downloads only its own checkpoint, about 312 MB.
 
+The recommender specialist can be run on its own the same way:
+
+```python
+from matrixformer import MatrixFormerRecSys
+
+model = MatrixFormerRecSys.from_pretrained(device="cpu", precision="float32")
+completed = model.impute(matrix)
+```
+
+`MatrixFormerRecSys` downloads only the recommender checkpoint, also about
+312 MB. It uses the same generic column normalization as the other classes,
+not the paper's rating recipe of user/item bias centering and shrunk user
+scales, so its rating predictions differ from the paper's recommender results.
+
 ### Understanding the Blend Output
 
 After calling `impute`, `model.last_decision` describes the MatrixFormer+ blend:
@@ -135,7 +153,8 @@ After calling `impute`, `model.last_decision` describes the MatrixFormer+ blend:
 - `selected`: the expert with the lower individual reconstruction error. This
   label does not replace the blend; `specialist_weight` determines the output.
 
-`MatrixFormerImpute` uses one model and has no `last_decision` attribute.
+`MatrixFormerImpute` and `MatrixFormerRecSys` each use one model and have no
+`last_decision` attribute.
 
 ## Prepare Your Data
 
@@ -196,7 +215,7 @@ print(completed)
 
 For a BF16-capable NVIDIA GPU, use `--device cuda` and optionally omit
 `--precision float32` to use BF16. Add `--model impute` to use the single general
-expert. Relative input, output, cache, and checkpoint paths are relative to your
+expert, or `--model recsys` for the single recommender expert. Relative input, output, cache, and checkpoint paths are relative to your
 current working directory, not the repository directory.
 
 The command prints a JSON summary, not the completed matrix. `--output` saves
@@ -256,8 +275,9 @@ own architecture code and decoder-bin constants. No files from another source
 checkout are needed, including when running offline.
 
 If you set `cache_dir` or `--cache-dir` while downloading, use the same setting
-when loading offline. Use `--model impute` for both download and inference to
-prepare only the general expert. An Impute-only bundle cannot run MatrixFormer+.
+when loading offline. Use `--model impute` (or `--model recsys`) for both
+download and inference to prepare only that expert. A single-expert bundle
+cannot run MatrixFormer+.
 
 ## Context and Memory
 
