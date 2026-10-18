@@ -122,6 +122,8 @@ h1 { font-size: clamp(34px, 5vw, 50px); line-height: 1.08; letter-spacing: -.025
 .lede { font-size: 18px; color: var(--muted); margin: 0 0 12px; max-width: 34em; }
 .authors { font-size: 14.5px; color: var(--muted); margin: 16px 0 24px; }
 .authors b { color: var(--text); font-weight: 600; }
+.authors a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 30%, transparent); text-underline-offset: 3px; }
+.authors a:hover { color: var(--accent); text-decoration-color: currentColor; }
 .btns { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -394,7 +396,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       <h1>MatrixFormer</h1>
       <p class="lede">A pretrained transformer that fills in the missing entries of any numerical matrix: ratings, panels, sensor grids, tables. No training, no fine-tuning, no hyperparameters to tune.</p>
       <p class="authors">
-        <b>Dwaipayan Saha</b>*, <b>Jacob Feitelberg</b>*, <b>Kyuseong Choi</b>*, Raaz Dwivedi, Anish Agarwal<br>
+        <b><a href="https://dsaha04.github.io/">Dwaipayan Saha</a></b>*, <b><a href="https://jacobf18.github.io">Jacob Feitelberg</a></b>*, <b><a href="https://kyuseongchoi5.github.io/">Kyuseong Choi</a></b>*, <a href="https://raazdwivedi.github.io/">Raaz Dwivedi</a>, <a href="https://sites.google.com/view/anishagarwal/home">Anish Agarwal</a><br>
         <span style="font-size:13px">* Equal contribution</span>
       </p>
       <div class="btns">
@@ -1164,7 +1166,6 @@ completed = model.<span class="tk-f">impute</span>(matrix)
 <footer>
   <div class="wrap">
     <span>MatrixFormer · <a href="https://github.com/jacobf18/MatrixFormer">GitHub</a> · <a href="https://huggingface.co/Tabimpute/TabImpute">Hugging Face</a> · <a href="https://arxiv.org/abs/2610.06751">arXiv</a></span>
-    <span><a href="https://jacobf18.github.io">Jacob Feitelberg</a></span>
   </div>
 </footer>
 
