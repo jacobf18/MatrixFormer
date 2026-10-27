@@ -47,15 +47,19 @@ def resolve_experts(names, *, local_dir=None, cache_dir=None, local_files_only=F
     return resolved
 
 
-def download_checkpoints(local_dir=None, *, model="plus", cache_dir=None):
+def download_checkpoints(local_dir=None, *, model="matrixformer", cache_dir=None):
     """Download and verify the frozen artifacts; no authentication is required.
 
-    With local_dir, preserve the Hugging Face matrixformer/{impute,recsys}
-    directory layout for subsequent offline loading. Otherwise use the Hub cache.
+    With local_dir, preserve the Hugging Face matrixformer/ directory layout for
+    subsequent offline loading. Otherwise use the Hub cache. model is
+    "matrixformer", "impute", "recsys", or "plus"/"ensemble" for MatrixFormer*.
     """
-    expert_names = {"plus": ("impute", "recsys"), "impute": ("impute",), "recsys": ("recsys",)}
+    expert_names = {
+        "matrixformer": ("matrixformer",), "impute": ("impute",), "recsys": ("recsys",),
+        "plus": ("impute", "recsys"), "ensemble": ("impute", "recsys"),
+    }
     if model not in expert_names:
-        raise ValueError("model must be 'plus', 'impute', or 'recsys'")
+        raise ValueError("model must be 'matrixformer', 'impute', 'recsys', 'plus', or 'ensemble'")
     names = expert_names[model]
     if local_dir is None:
         return resolve_experts(names, cache_dir=cache_dir)

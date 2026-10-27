@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "matrixformer"
-version = "0.1.0"
-description = "Frozen MatrixFormer+ inference for numerical matrix completion"
+version = "0.2.0"
+description = "Frozen MatrixFormer inference for numerical matrix completion"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

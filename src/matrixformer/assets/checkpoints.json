@@ -1,10 +1,16 @@
 {
   "repo_id": "Tabimpute/TabImpute",
-  "revision": "727574989ddebe71860141c9a8b9f6e7958e3cce",
+  "revision": "9c24f63ce5973b1a7fd694485b20ab4d6973be17",
   "source_repository": "https://github.com/jacobf18/tabular",
   "source_revision": "2cf54ac47dbcc1154b35e875b527ed0c42a9f416",
   "borders_sha256": "5599c231bc5eebc583b946acb22d44803ac5e3171efcc2dba10b704deef6ee96",
   "experts": {
+    "matrixformer": {
+      "checkpoint": "matrixformer/best_validation_checkpoint.pth",
+      "checkpoint_sha256": "0d0ecb1c61be86e63a2b959004f858fd9ab80fbc71e934fed439eac0c1039f49",
+      "config": "matrixformer/config.json",
+      "config_sha256": "4d9f0e56d57fda7a4d7077ef2ece91c80ae206542ecc585fe919b93892c0a48b"
+    },
     "impute": {
       "checkpoint": "matrixformer/impute/best_validation_checkpoint.pth",
       "checkpoint_sha256": "c0ddf75274c8ff92ca5fd22c1263369ffa7e55eb7cb85fe80961b0afa101f7a9",

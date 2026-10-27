@@ -6,18 +6,22 @@ from pathlib import Path
 
 import numpy as np
 
-from . import MatrixFormerImpute, MatrixFormerPlus, MatrixFormerRecSys, download_checkpoints
+from . import (
+    MatrixFormer, MatrixFormerImpute, MatrixFormerPlus, MatrixFormerRecSys, download_checkpoints,
+)
 from .imputer import prepare_matrix
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Frozen MatrixFormer+ matrix completion",
+        description="Frozen MatrixFormer matrix completion",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--model", choices=("plus", "impute", "recsys"), default="plus",
-        help="Two-expert blend (plus), general expert only (impute), or recommender expert only (recsys)",
+        "--model", choices=("matrixformer", "impute", "recsys", "ensemble", "plus"),
+        default="matrixformer",
+        help="MatrixFormer (matrixformer), a single specialist (impute or recsys), or the "
+        "MatrixFormer* ensemble of both specialists (ensemble; plus is the former name)",
     )
     parser.add_argument(
         "--input", type=Path,
@@ -82,7 +86,8 @@ def main():
         matrix = np.load(args.input, allow_pickle=False)
     matrix = prepare_matrix(matrix)
     factory = {
-        "plus": MatrixFormerPlus, "impute": MatrixFormerImpute, "recsys": MatrixFormerRecSys,
+        "matrixformer": MatrixFormer, "impute": MatrixFormerImpute, "recsys": MatrixFormerRecSys,
+        "ensemble": MatrixFormerPlus, "plus": MatrixFormerPlus,
     }[args.model]
     model = factory.from_pretrained(
         device=args.device, precision=args.precision, max_rows=args.max_rows or None,
@@ -100,7 +105,7 @@ def main():
         "all_predictions_finite": bool(np.isfinite(completed).all()),
         "observed_entries_preserved": bool(np.array_equal(completed[observed], matrix[observed])),
     }
-    if args.model == "plus":
+    if args.model in ("ensemble", "plus"):
         report["blend_decision"] = model.last_decision
     if args.output is not None:
         report["output"] = str(args.output)
