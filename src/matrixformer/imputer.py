@@ -1,4 +1,4 @@
-"""Public matrix completion API and the observed-error convex blend."""
+"""Public matrix completion API: MatrixFormer, its two specialists, and their ensemble."""
 
 import json
 
@@ -119,14 +119,20 @@ class _SingleExpertImputer(_PretrainedImputer):
         return completed
 
 
+class MatrixFormer(_SingleExpertImputer):
+    """MatrixFormer: one frozen network trained on mixed synthetic priors (the default)."""
+
+    _expert_names = ("matrixformer",)
+
+
 class MatrixFormerImpute(_SingleExpertImputer):
-    """The single frozen general-purpose expert."""
+    """MatrixFormer-Impute: the frozen imputation specialist."""
 
     _expert_names = ("impute",)
 
 
 class MatrixFormerRecSys(_SingleExpertImputer):
-    """The single frozen recommender-system expert.
+    """MatrixFormer-RecSys: the frozen recommender-system specialist.
 
     Inputs use the same generic column normalization as the other models, not
     the paper's rating recipe (bias centering and shrunk user scales).
@@ -136,7 +142,10 @@ class MatrixFormerRecSys(_SingleExpertImputer):
 
 
 class MatrixFormerPlus(_PretrainedImputer):
-    """Two frozen experts with one observed-error-fitted weight per input matrix."""
+    """MatrixFormer*: the two specialists blended with one observed-error-fitted weight.
+
+    Formerly called MatrixFormer+; the class keeps that name for compatibility.
+    """
 
     _expert_names = ("impute", "recsys")
 
