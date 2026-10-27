@@ -324,9 +324,9 @@ td.num { font-family: "JetBrains Mono", monospace; font-size: 13.5px; }
 #specSvg { max-width: 400px; margin: 0 auto; display: block; }
 
 /* Results */
-:root { --mf: #2a78d6; --alt: #eb6834; --base: #85857f; --hl-row: rgba(42,120,214,.07); }
-:root[data-theme="dark"] { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mf: #3987e5; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); } }
+:root { --mf: #2a78d6; --mf2: #8db7ea; --alt: #eb6834; --base: #85857f; --hl-row: rgba(42,120,214,.07); }
+:root[data-theme="dark"] { --mf: #3987e5; --mf2: #6f9fd8; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mf: #3987e5; --mf2: #6f9fd8; --alt: #d95926; --base: #6b6f78; --hl-row: rgba(57,135,229,.12); } }
 .r-h { font-size: 20px; margin: 44px 0 8px; }
 .viz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px 14px; margin-top: 14px; }
 @media (max-width: 520px) { .viz-card { padding: 14px 12px 10px; } }
@@ -379,7 +379,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       <a href="#results">Results</a>
       <a href="#how" class="opt">How it works</a>
       <a href="#training" class="opt">Training</a>
-      <a href="#blend" class="opt">MatrixFormer+</a>
+      <a href="#blend" class="opt">MatrixFormer*</a>
       <a href="#quickstart">Quickstart</a>
       <a href="#cite" class="opt">Cite</a>
     </div>
@@ -458,11 +458,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 <section id="results">
   <div class="wrap">
     <h2>Results</h2>
-    <p class="sub">One set of frozen weights, with no fine-tuning, evaluated across four domains: tabular imputation, causal inference on panel data, recommender systems and language-model evaluation. All numbers are from the <a href="https://arxiv.org/abs/2610.06751">paper</a>. Hover any chart for exact values.</p>
+    <p class="sub">Frozen weights with no fine-tuning, evaluated across four domains: tabular imputation, causal inference on panel data, recommender systems and language-model evaluation. <b style="color:var(--mf)">MatrixFormer</b> is the default: one network. <b style="color:var(--mf)">MatrixFormer*</b> (lighter blue) is the ensemble of two specialist networks, shown for reference. All numbers are from the <a href="https://arxiv.org/abs/2610.06751">paper</a>. Hover any chart for exact values.</p>
 
     <!-- Imputation -->
     <h3 class="r-h">Tabular imputation</h3>
-    <p class="prose">Two suites, scored on masked cells with column-normalized RMSE (NRMSE). <b>MissBench</b>: 42 OpenML datasets under 11 missingness mechanisms at 40% missingness. <b>UCI</b>: 12 datasets under MCAR, MAR and MNAR at 10–50% missingness, with 10 repeats each. MatrixFormer has the lowest overall error on both.</p>
+    <p class="prose">Two suites, scored on masked cells with column-normalized RMSE (NRMSE). <b>MissBench</b>: 42 OpenML datasets under 11 missingness mechanisms at 40% missingness. <b>UCI</b>: 12 datasets under MCAR, MAR and MNAR at 10–50% missingness, with 10 repeats each. MatrixFormer* has the lowest overall error on both suites. The single MatrixFormer is about 2% behind it: second on UCI (1.017, ahead of ICE at 1.172) and third on MissBench (1.612, just behind legacy TabImpute at 1.585). Under MissBench MNAR missingness it is the best method, ahead of MatrixFormer* (1.950 vs 1.978).</p>
     <div class="viz-card">
       <div class="viz-controls">
         <div class="tabs" role="tablist" id="impSuite">
@@ -484,7 +484,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
     <!-- Causal -->
     <h3 class="r-h">Causal inference: counterfactual completion</h3>
-    <p class="prose">Estimating a treatment effect means predicting what treated units <i>would</i> have done untreated. On placebo panels where the true effect is zero, we hide the treated block and score its completion. Benchmarks: CPS state wage panels, the Kansas semi-synthetic design, and the California smoking donor pool. Scores are min–max normalized within each draw across the seven methods: 0 is best and 1 is worst.</p>
+    <p class="prose">Estimating a treatment effect means predicting what treated units <i>would</i> have done untreated. On placebo panels where the true effect is zero, we hide the treated block and score its completion. Benchmarks: CPS state wage panels, the Kansas semi-synthetic design, and the California smoking donor pool. Scores are min–max normalized within each draw across the seven methods: 0 is best and 1 is worst. These benchmarks were run with MatrixFormer* only; the single MatrixFormer has not been evaluated on them yet.</p>
     <div class="viz-card">
       <div class="viz-controls">
         <div class="tabs" role="tablist" id="causMetric">
@@ -493,13 +493,13 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
         </div>
       </div>
       <div class="multiples m3" id="causChart"></div>
-      <p class="viz-cap">Lower is better. Means over draws, with the designs within a benchmark weighted equally. MatrixFormer is lowest in five of six panels; HyperImpute is lowest for the Kansas effect error (0.119 vs 0.125).</p>
+      <p class="viz-cap">Lower is better. Means over draws, with the designs within a benchmark weighted equally. MatrixFormer* is lowest in five of six panels; HyperImpute is lowest for the Kansas effect error (0.119 vs 0.125).</p>
       <details class="viz-table"><summary>Show data table</summary><div id="causTable"></div></details>
     </div>
 
     <!-- RecSys -->
     <h3 class="r-h">Recommender systems</h3>
-    <p class="prose">Rating prediction on sparse user–item matrices, with a frozen 80/20 rating holdout. Baselines are Cornac's collaborative-filtering models. RMSE and MAE are in rating units, averaged over test users. MatrixFormer is lowest on both datasets and both metrics; on Netflix, its RMSE margin over SVD is small.</p>
+    <p class="prose">Rating prediction on sparse user–item matrices, with a frozen 80/20 rating holdout. Baselines are Cornac's collaborative-filtering models. RMSE and MAE are in rating units, averaged over test users. MatrixFormer* is lowest on both datasets and both metrics. The single MatrixFormer beats every baseline on MovieLens 100K (RMSE 0.8926 vs 0.8998 for SVD). On Netflix it trails SVD slightly (RMSE 0.8666 vs 0.8621).</p>
     <div class="viz-card">
       <div class="viz-controls">
         <div class="tabs" role="tablist" id="recData">
@@ -514,10 +514,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
     <!-- LLM -->
     <h3 class="r-h">Language-model benchmark completion</h3>
-    <p class="prose">Rows are language models and columns are benchmark tasks. For a held-out model we reveal its scores on <i>k</i> tasks chosen by greedy mutual information, then predict the rest. The baseline is the Gaussian conditional-mean estimator from the task-selection release. MatrixFormer is higher on MTEB, Merged and BenchPress, with the largest gains on the two sparsest matrices. The Gaussian estimator is slightly higher on dense MMLU.</p>
+    <p class="prose">Rows are language models and columns are benchmark tasks. For a held-out model we reveal its scores on <i>k</i> tasks chosen by greedy mutual information, then predict the rest. The baseline is the Gaussian conditional-mean estimator from the task-selection release. MatrixFormer is higher than the Gaussian estimator on MTEB, Merged and BenchPress, with the largest gains on the two sparsest matrices. It is also higher than MatrixFormer* on those two sparse matrices (mean R² 0.451 vs 0.435 on Merged, 0.280 vs 0.262 on BenchPress). The Gaussian estimator is slightly higher on dense MMLU.</p>
     <div class="viz-card">
       <div class="legend viz-legend">
         <span><i class="key" style="background:var(--mf)"></i>MatrixFormer</span>
+        <span><i class="key" style="background:repeating-linear-gradient(90deg,var(--mf2) 0 5px,transparent 5px 8px)"></i>MatrixFormer* (dashed)</span>
         <span><i class="key" style="background:var(--alt)"></i>Gaussian conditional mean</span>
       </div>
       <div class="multiples m4" id="llmChart"></div>
@@ -527,14 +528,14 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
     <!-- Runtime -->
     <h3 class="r-h">Inference speed</h3>
-    <p class="prose">TabImpute builds a separate prediction problem for every missing entry. MatrixFormer completes the whole matrix in one forward pass. With 10 columns, the speedup grows from 2.1× at 16 rows to 107× at 1,024 rows: 4.17 s for TabImpute vs 0.039 s for MatrixFormer-Impute.</p>
+    <p class="prose">TabImpute builds a separate prediction problem for every missing entry. MatrixFormer completes the whole matrix in one forward pass. With 10 columns, the speedup grows from 2.1× at 16 rows to 107× at 1,024 rows: 4.17 s for TabImpute vs 0.039 s for MatrixFormer.</p>
     <div class="viz-card">
       <div class="legend viz-legend">
-        <span><i class="key" style="background:var(--mf)"></i>MatrixFormer-Impute</span>
+        <span><i class="key" style="background:var(--mf)"></i>MatrixFormer</span>
         <span><i class="key" style="background:var(--alt)"></i>TabImpute (legacy)</span>
       </div>
       <div class="viz" id="rtChart"></div>
-      <p class="viz-cap">Median runtime on one NVIDIA H200, 10 columns, both axes logarithmic.</p>
+      <p class="viz-cap">Median runtime on one NVIDIA H200, 10 columns, both axes logarithmic. Measured with a network of the same architecture as MatrixFormer (the MatrixFormer-Impute specialist), so the runtime is the same. MatrixFormer* runs two networks.</p>
       <details class="viz-table"><summary>Show data table</summary><div id="rtTable"></div></details>
     </div>
 
@@ -616,7 +617,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       </svg>
     </div>
     <div class="scroll-hint">Scroll sideways to see the full diagram →</div>
-    <p class="figcap">One expert network, about 78M parameters. MatrixFormer+ runs two of these experts and blends them (below).</p>
+    <p class="figcap">One network, about 78M parameters. This is all MatrixFormer runs. MatrixFormer* runs two specialist networks of the same architecture and blends them (below).</p>
 
     <div class="steps">
       <div class="step">
@@ -638,14 +639,14 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     </div>
 
     <div class="callout">
-      <b>Trained only on synthetic data.</b> Both experts learned from randomly generated matrices with varied structure and missingness patterns. No real ratings or tables were used for gradient updates.
+      <b>Trained only on synthetic data.</b> Every released network learned from randomly generated matrices with varied structure and missingness patterns. No real ratings or tables were used for gradient updates.
     </div>
 
     <!-- ===== Deep dive ===== -->
     <div class="deep">
       <div class="deep-head">
         <h2 style="font-size:24px">Architecture deep dive</h2>
-        <p class="sub" style="margin-bottom:0">Everything below is read directly from the inference code in <a href="https://github.com/jacobf18/MatrixFormer/tree/main/src/matrixformer"><code>src/matrixformer</code></a> and the released expert configs.</p>
+        <p class="sub" style="margin-bottom:0">Everything below is read directly from the inference code in <a href="https://github.com/jacobf18/MatrixFormer/tree/main/src/matrixformer"><code>src/matrixformer</code></a> and the released model configs.</p>
         <nav class="toc">
           <a href="#d-budget">Parameter budget</a>
           <a href="#d-grid">Token grid</a>
@@ -658,7 +659,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
       <!-- Budget -->
       <h3 id="d-budget">Where the 78M parameters live</h3>
-      <p class="prose">Each expert has exactly 77,998,496 parameters. The eight transformer blocks hold 85% of them. The decoder is large too, because its last layer maps 1536 features to 5000 bin logits. The cell encoder is tiny: it only has to lift one scalar into a 768-dimensional token.</p>
+      <p class="prose">Each network has exactly 77,998,496 parameters. The eight transformer blocks hold 85% of them. The decoder is large too, because its last layer maps 1536 features to 5000 bin logits. The cell encoder is tiny: it only has to lift one scalar into a 768-dimensional token.</p>
       <div class="budget" aria-label="Parameter budget by component">
         <div class="b-enc" style="flex-basis:0.79%"></div>
         <div class="b-blk" style="flex-basis:84.82%">8 blocks · 66.16M</div>
@@ -796,7 +797,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 <section id="training">
   <div class="wrap">
     <h2>Training</h2>
-    <p class="sub">Like prior-data fitted networks (TabPFN) and TabImpute, MatrixFormer never sees a real dataset during training. It learns from an endless stream of synthetic complete matrices, each masked into a reconstruction task. Details below follow Section 2 and Appendix A of the <a href="https://arxiv.org/abs/2610.06751">paper</a>.</p>
+    <p class="sub">Like prior-data fitted networks (TabPFN) and TabImpute, MatrixFormer never sees a real dataset during training. It learns from an endless stream of synthetic complete matrices, each masked into a reconstruction task. Details below follow Section 2 and Appendix A of the <a href="https://arxiv.org/abs/2610.06751">paper</a>. The phases below produce the imputation specialist, MatrixFormer-Impute. The <a href="#single-training">default MatrixFormer</a> is a single network distilled from the specialists.</p>
 
     <!-- Phases -->
     <h3 style="margin-top:8px">Three phases, one architecture</h3>
@@ -1020,13 +1021,30 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
         <li><b>User-balanced</b> query sampling, and the released weights are an exponential moving average (decay 0.95).</li>
       </ul>
     </div>
+
+    <!-- Single model -->
+    <h3 id="single-training">The default model: one network from two specialists</h3>
+    <p class="prose">MatrixFormer is one network with the same architecture as the specialists. It is trained, not built by averaging their weights. Training continues from an earlier single-model checkpoint on a mix of three synthetic task types. Teachers guide it during training only, so at inference it needs one checkpoint and no blend fit.</p>
+    <div class="two">
+      <ul class="facts">
+        <li><b>Mixed prior:</b> native imputation, structured missingness and synthetic rating tasks, with objective weights 0.50, 0.25 and 0.25.</li>
+        <li><b>56 tasks per update:</b> 4 native tasks, 4 draws for each of 12 structured missingness families (MCAR, MAR, MNAR and structured variants), and 4 rating tasks.</li>
+        <li><b>Teachers:</b> the frozen MatrixFormer* ensemble for imputation and MatrixFormer-RecSys for ratings, with a Huber loss on the teacher mean (coefficient raised from 2 to 20).</li>
+        <li><b>Ground truth kept:</b> NLL and CDF supervision, columnwise point-error objectives, and retention penalties against earlier single-model predictions.</li>
+      </ul>
+      <ul class="facts">
+        <li><b>Protected updates:</b> full-network AdamW at learning rate 5 × 10⁻⁶. Gradients are projected to protect task metrics, and an update that fails its checks is rolled back.</li>
+        <li><b>Selection:</b> of 100 attempts, 51 updates were accepted. The released checkpoint is from attempt 25, chosen by the worst relative error on fixed synthetic development metrics. Real benchmark scores were not used.</li>
+        <li><b>Synthetic only:</b> no real benchmark matrices or targets enter any update.</li>
+      </ul>
+    </div>
   </div>
 </section>
 
 <section id="blend">
   <div class="wrap">
-    <h2>MatrixFormer+: a two-expert blend</h2>
-    <p class="sub">MatrixFormer+ runs two experts with the same architecture: a <b style="color:var(--general)">general</b> imputation model and a <b style="color:var(--specialist)">recommender-system specialist</b> trained on sparse, rating-like matrices. It then picks one mixing weight for your matrix from how well each expert reconstructs the entries you did observe.</p>
+    <h2>MatrixFormer*: a two-specialist ensemble</h2>
+    <p class="sub">MatrixFormer* (formerly MatrixFormer+) runs two networks with the same architecture: a <b style="color:var(--general)">general</b> imputation model and a <b style="color:var(--specialist)">recommender-system specialist</b> trained on sparse, rating-like matrices. It then picks one mixing weight for your matrix from how well each reconstructs the entries you did observe. It is slightly more accurate than the default MatrixFormer on most benchmarks, at twice the compute. Load it with <code>MatrixFormerPlus</code> or <code>--model ensemble</code>.</p>
 
     <div class="blend">
       <div>
@@ -1048,7 +1066,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
           <div class="mg" id="mg" style="flex-basis:65%">general 65%</div>
           <div class="ms" id="ms" style="flex-basis:35%">specialist 35%</div>
         </div>
-        <p class="mix-cap" id="wcap">Both experts contribute. MatrixFormer+ reports the fitted weight in <code>model.last_decision["specialist_weight"]</code>.</p>
+        <p class="mix-cap" id="wcap">Both networks contribute. MatrixFormer* reports the fitted weight in <code>model.last_decision["specialist_weight"]</code>.</p>
       </div>
     </div>
   </div>
@@ -1082,7 +1100,7 @@ python -m matrixformer --device cpu --precision float32   <span class="tk-c"># r
       <div class="code">
         <div class="bar"><span>python</span><button class="copy">Copy</button></div>
 <pre><span class="tk-k">import</span> numpy <span class="tk-k">as</span> np
-<span class="tk-k">from</span> matrixformer <span class="tk-k">import</span> MatrixFormerPlus
+<span class="tk-k">from</span> matrixformer <span class="tk-k">import</span> MatrixFormer
 
 matrix = np.array([
     [<span class="tk-n">1.0</span>, <span class="tk-n">2.0</span>, np.nan],
@@ -1090,11 +1108,10 @@ matrix = np.array([
     [<span class="tk-n">3.0</span>, <span class="tk-n">6.0</span>, <span class="tk-n">9.0</span>],
 ])
 
-model = MatrixFormerPlus.<span class="tk-f">from_pretrained</span>(device=<span class="tk-s">"cpu"</span>, precision=<span class="tk-s">"float32"</span>)
+model = MatrixFormer.<span class="tk-f">from_pretrained</span>(device=<span class="tk-s">"cpu"</span>, precision=<span class="tk-s">"float32"</span>)
 completed = model.<span class="tk-f">impute</span>(matrix)
 
-<span class="tk-f">print</span>(completed)
-<span class="tk-f">print</span>(model.last_decision)   <span class="tk-c"># blend weight and reconstruction errors</span></pre>
+<span class="tk-f">print</span>(completed)</pre>
       </div>
       <p class="figcap">Use <code>device="cuda"</code> on a GPU, where the default <code>amp_bfloat16</code> precision is used. Reuse the model object across matrices.</p>
     </div>
@@ -1105,7 +1122,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
 <pre>python -m matrixformer --input matrix.npy --output completed.npy \
     --device cpu --precision float32</pre>
       </div>
-      <p class="figcap">Input is a <code>.npy</code> array with <code>NaN</code> for missing entries. Add <code>--model impute</code> or <code>--model recsys</code> to run a single expert, or <code>--download-only --local-dir ./checkpoints</code> to prepare an offline bundle.</p>
+      <p class="figcap">Input is a <code>.npy</code> array with <code>NaN</code> for missing entries. The default is MatrixFormer. Add <code>--model impute</code> or <code>--model recsys</code> for a specialist, <code>--model ensemble</code> for MatrixFormer*, or <code>--download-only --local-dir ./checkpoints</code> to prepare an offline bundle.</p>
     </div>
 
     <div class="two" style="margin-top:32px">
@@ -1113,10 +1130,11 @@ completed = model.<span class="tk-f">impute</span>(matrix)
         <h3 style="margin-top:0">Choose a model</h3>
         <div class="table-wrap">
           <table>
-            <tr><th>Model</th><th>Experts</th><th>Weights</th></tr>
-            <tr><td><code>MatrixFormerPlus</code><br><span style="color:var(--muted);font-size:13px">default · <code>--model plus</code></span></td><td>General + specialist, blended</td><td class="num">~624 MB</td></tr>
-            <tr><td><code>MatrixFormerImpute</code><br><span style="color:var(--muted);font-size:13px"><code>--model impute</code></span></td><td>General only</td><td class="num">~312 MB</td></tr>
-            <tr><td><code>MatrixFormerRecSys</code><br><span style="color:var(--muted);font-size:13px"><code>--model recsys</code></span></td><td>Recommender specialist only (<a href="#recsys-training">how it was trained</a>)</td><td class="num">~312 MB</td></tr>
+            <tr><th>Model</th><th>Networks</th><th>Weights</th></tr>
+            <tr><td><code>MatrixFormer</code><br><span style="color:var(--muted);font-size:13px">default · <code>--model matrixformer</code></span></td><td>One network for imputation and ratings (<a href="#single-training">how it was trained</a>)</td><td class="num">~312 MB</td></tr>
+            <tr><td><code>MatrixFormerImpute</code><br><span style="color:var(--muted);font-size:13px"><code>--model impute</code></span></td><td>Imputation specialist</td><td class="num">~312 MB</td></tr>
+            <tr><td><code>MatrixFormerRecSys</code><br><span style="color:var(--muted);font-size:13px"><code>--model recsys</code></span></td><td>Recommender specialist (<a href="#recsys-training">how it was trained</a>)</td><td class="num">~312 MB</td></tr>
+            <tr><td><code>MatrixFormerPlus</code><br><span style="color:var(--muted);font-size:13px">MatrixFormer* · <code>--model ensemble</code></span></td><td>Both specialists, blended</td><td class="num">~624 MB</td></tr>
           </table>
         </div>
       </div>
@@ -1124,7 +1142,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
         <h3 style="margin-top:0">Architecture at a glance</h3>
         <div class="table-wrap">
           <table>
-            <tr><td>Parameters per expert</td><td class="num">77,998,496</td></tr>
+            <tr><td>Parameters per network</td><td class="num">77,998,496</td></tr>
             <tr><td>Blocks · width · heads</td><td class="num">8 · 768 · 16</td></tr>
             <tr><td>Feed-forward width</td><td class="num">1536 (SwiGLU)</td></tr>
             <tr><td>Output bins</td><td class="num">5000</td></tr>
@@ -1428,21 +1446,21 @@ completed = model.<span class="tk-f">impute</span>(matrix)
     });
   })();
 
-  var IMP = {"missbench":{"overall":[["MatrixFormer",1.58,1.36,1.877,false],["TabImpute (legacy)",1.585,1.405,1.817,false],["MissForest",1.966,1.565,2.612,false],["K-NN",2.022,1.636,2.556,false],["HyperImpute",2.067,1.53,2.863,false],["MICE",2.215,1.521,3.248,true],["ICE",2.265,1.6,3.28,false],["SoftImpute",2.289,1.755,3.041,false],["MIWAE",2.373,1.956,2.959,false],["GAIN",3.065,2.078,4.689,false]],"MCAR":[["MatrixFormer",0.866,0.784,0.956,false],["TabImpute (legacy)",0.819,0.756,0.881,false],["MissForest",1.018,0.793,1.338,false],["K-NN",0.943,0.842,1.07,false],["HyperImpute",0.969,0.818,1.167,false],["MICE",1.002,0.776,1.349,false],["ICE",1.215,0.883,1.744,false],["SoftImpute",1.007,0.907,1.129,false],["MIWAE",1.235,1.142,1.373,false],["GAIN",1.246,0.952,1.674,false]],"MAR":[["MatrixFormer",1.086,0.939,1.311,false],["TabImpute (legacy)",1.076,0.946,1.25,false],["MissForest",1.197,1.024,1.444,false],["K-NN",1.075,0.996,1.153,false],["HyperImpute",1.117,0.951,1.367,false],["MICE",1.298,1.03,1.72,false],["ICE",1.135,0.982,1.347,false],["SoftImpute",1.417,1.18,1.753,false],["MIWAE",1.701,1.398,2.093,false],["GAIN",2.207,1.489,3.415,false]],"MNAR":[["MatrixFormer",1.978,1.543,2.473,false],["TabImpute (legacy)",2.184,1.782,2.613,false],["MissForest",2.58,1.984,3.344,false],["K-NN",2.539,2.037,3.106,false],["HyperImpute",2.636,1.9,3.672,false],["MICE",2.543,1.933,3.291,false],["ICE",2.988,2.047,4.199,false],["SoftImpute",3.372,2.401,4.689,false],["MIWAE",3.608,2.752,4.631,false],["GAIN",2.965,2.186,4.042,false]]},"uci":{"overall":[["MatrixFormer",0.998,0.76,1.248,false],["ICE",1.172,0.852,1.498,false],["MissForest",1.197,0.916,1.494,false],["K-NN",1.202,0.922,1.515,false],["SoftImpute",1.266,0.955,1.588,false],["HyperImpute",1.301,0.953,1.647,true],["MICE",1.625,1.099,2.167,false],["GAIN",1.95,1.414,2.502,true],["MIWAE",2.168,1.743,2.639,true]],"MCAR":[["MatrixFormer",0.685,0.539,0.808,false],["ICE",0.722,0.554,0.866,false],["MissForest",0.702,0.577,0.808,false],["K-NN",0.748,0.611,0.873,false],["SoftImpute",0.694,0.541,0.82,false],["HyperImpute",0.71,0.547,0.845,true],["MICE",1.131,0.774,1.54,false],["GAIN",0.941,0.742,1.171,true],["MIWAE",3.445,2.284,4.708,true]],"MAR":[["MatrixFormer",0.82,0.676,0.941,false],["ICE",0.841,0.659,1.005,false],["MissForest",0.864,0.737,0.969,false],["K-NN",0.853,0.736,0.965,false],["SoftImpute",0.917,0.758,1.043,false],["HyperImpute",0.957,0.729,1.179,false],["MICE",1.248,0.91,1.616,false],["GAIN",1.715,1.274,2.225,false],["MIWAE",1.229,1.14,1.345,false]],"MNAR":[["MatrixFormer",1.488,1.003,2.059,false],["ICE",1.952,1.254,2.708,false],["MissForest",2.025,1.34,2.803,false],["K-NN",2.007,1.333,2.796,false],["SoftImpute",2.187,1.462,2.999,false],["HyperImpute",1.955,1.297,2.649,false],["MICE",2.494,1.461,3.618,false],["GAIN",2.661,1.667,3.761,false],["MIWAE",2.56,1.871,3.348,false]]}};
-  var LLM = {"mteb":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.5788,0.6968,0.7353,0.7525,0.7651,0.7913,0.8088,0.821,0.8212,0.8261,0.8246,0.8283,0.8295,0.8299,0.8316],"gauss":[0.555,0.6757,0.7203,0.7317,0.7498,0.778,0.7974,0.8048,0.8062,0.8125,0.8125,0.8179,0.8191,0.8215,0.8259]},"mmlu":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.8459,0.8799,0.8987,0.8987,0.8992,0.8971,0.8963,0.8952,0.8951,0.8993,0.9005,0.9038,0.9108,0.9132,0.9155],"gauss":[0.8327,0.8809,0.9022,0.9047,0.9064,0.9066,0.9074,0.9077,0.9089,0.9118,0.9135,0.9169,0.9224,0.9247,0.9266]},"merged":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.2078,0.1026,0.2253,0.4049,0.4279,0.4505,0.489,0.5061,0.5115,0.5453,0.576,0.6055,0.6016,0.635,0.6464],"gauss":[0.0856,0.2055,0.2992,0.3638,0.3899,0.4154,0.2561,0.2693,0.2729,0.2899,0.3111,0.3262,0.3209,0.3593,0.3625]},"benchpress":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.0468,0.1139,0.1244,0.1982,0.204,0.2382,0.2696,0.2651,0.2638,0.2811,0.3097,0.3864,0.419,0.4287,0.4687],"gauss":[-0.1095,-0.072,-0.2198,-0.2489,-0.2386,-0.2498,-0.194,-0.2418,-0.2296,-0.1938,-0.1995,-0.0947,-0.0588,-0.0704,-0.0253]}};
+  var IMP = {"missbench":{"overall":[["MatrixFormer*",1.58,1.36,1.877,false],["TabImpute (legacy)",1.585,1.405,1.817,false],["MatrixFormer",1.612,1.34,2.017,false],["MissForest",1.966,1.565,2.612,false],["K-NN",2.022,1.636,2.556,false],["HyperImpute",2.067,1.53,2.863,false],["MICE",2.215,1.521,3.248,true],["ICE",2.265,1.6,3.28,false],["SoftImpute",2.289,1.755,3.041,false],["MIWAE",2.373,1.956,2.959,false],["GAIN",3.065,2.078,4.689,false]],"MCAR":[["MatrixFormer*",0.866,0.784,0.956,false],["TabImpute (legacy)",0.819,0.756,0.881,false],["MatrixFormer",0.861,0.786,0.937,false],["MissForest",1.018,0.793,1.338,false],["K-NN",0.943,0.842,1.07,false],["HyperImpute",0.969,0.818,1.167,false],["MICE",1.002,0.776,1.349,false],["ICE",1.215,0.883,1.744,false],["SoftImpute",1.007,0.907,1.129,false],["MIWAE",1.235,1.142,1.373,false],["GAIN",1.246,0.952,1.674,false]],"MAR":[["MatrixFormer*",1.086,0.939,1.311,false],["TabImpute (legacy)",1.076,0.946,1.25,false],["MatrixFormer",1.105,0.934,1.375,false],["MissForest",1.197,1.024,1.444,false],["K-NN",1.075,0.996,1.153,false],["HyperImpute",1.117,0.951,1.367,false],["MICE",1.298,1.03,1.72,false],["ICE",1.135,0.982,1.347,false],["SoftImpute",1.417,1.18,1.753,false],["MIWAE",1.701,1.398,2.093,false],["GAIN",2.207,1.489,3.415,false]],"MNAR":[["MatrixFormer*",1.978,1.543,2.473,false],["TabImpute (legacy)",2.184,1.782,2.613,false],["MatrixFormer",1.95,1.527,2.424,false],["MissForest",2.58,1.984,3.344,false],["K-NN",2.539,2.037,3.106,false],["HyperImpute",2.636,1.9,3.672,false],["MICE",2.543,1.933,3.291,false],["ICE",2.988,2.047,4.199,false],["SoftImpute",3.372,2.401,4.689,false],["MIWAE",3.608,2.752,4.631,false],["GAIN",2.965,2.186,4.042,false]]},"uci":{"overall":[["MatrixFormer*",0.998,0.76,1.248,false],["MatrixFormer",1.017,0.765,1.281,false],["ICE",1.172,0.852,1.498,false],["MissForest",1.197,0.916,1.494,false],["K-NN",1.202,0.922,1.515,false],["SoftImpute",1.266,0.955,1.588,false],["HyperImpute",1.301,0.953,1.647,true],["MICE",1.625,1.099,2.167,false],["GAIN",1.95,1.414,2.502,true],["MIWAE",2.168,1.743,2.639,true]],"MCAR":[["MatrixFormer*",0.685,0.539,0.808,false],["MatrixFormer",0.689,0.538,0.816,false],["ICE",0.722,0.554,0.866,false],["MissForest",0.702,0.577,0.808,false],["K-NN",0.748,0.611,0.873,false],["SoftImpute",0.694,0.541,0.82,false],["HyperImpute",0.71,0.547,0.845,true],["MICE",1.131,0.774,1.54,false],["GAIN",0.941,0.742,1.171,true],["MIWAE",3.445,2.284,4.708,true]],"MAR":[["MatrixFormer*",0.82,0.676,0.941,false],["MatrixFormer",0.826,0.674,0.951,false],["ICE",0.841,0.659,1.005,false],["MissForest",0.864,0.737,0.969,false],["K-NN",0.853,0.736,0.965,false],["SoftImpute",0.917,0.758,1.043,false],["HyperImpute",0.957,0.729,1.179,false],["MICE",1.248,0.91,1.616,false],["GAIN",1.715,1.274,2.225,false],["MIWAE",1.229,1.14,1.345,false]],"MNAR":[["MatrixFormer*",1.488,1.003,2.059,false],["MatrixFormer",1.536,1.018,2.151,false],["ICE",1.952,1.254,2.708,false],["MissForest",2.025,1.34,2.803,false],["K-NN",2.007,1.333,2.796,false],["SoftImpute",2.187,1.462,2.999,false],["HyperImpute",1.955,1.297,2.649,false],["MICE",2.494,1.461,3.618,false],["GAIN",2.661,1.667,3.761,false],["MIWAE",2.56,1.871,3.348,false]]}};
+  var LLM = {"mteb":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.5726,0.688,0.7304,0.7462,0.7605,0.7859,0.8032,0.8143,0.8156,0.8198,0.8185,0.8216,0.8239,0.8225,0.8238],"gauss":[0.555,0.6757,0.7203,0.7317,0.7498,0.778,0.7974,0.8048,0.8062,0.8125,0.8125,0.8179,0.8191,0.8215,0.8259],"star":[0.5788,0.6968,0.7353,0.7525,0.7651,0.7913,0.8088,0.821,0.8212,0.8261,0.8246,0.8283,0.8295,0.8299,0.8316]},"mmlu":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[0.8413,0.8764,0.8953,0.8954,0.8962,0.8945,0.8939,0.8928,0.8929,0.8977,0.8995,0.9034,0.9107,0.9134,0.9156],"gauss":[0.8327,0.8809,0.9022,0.9047,0.9064,0.9066,0.9074,0.9077,0.9089,0.9118,0.9135,0.9169,0.9224,0.9247,0.9266],"star":[0.8459,0.8799,0.8987,0.8987,0.8992,0.8971,0.8963,0.8952,0.8951,0.8993,0.9005,0.9038,0.9108,0.9132,0.9155]},"merged":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.078,0.1615,0.2639,0.4091,0.4391,0.4586,0.4953,0.5121,0.5165,0.5456,0.5762,0.6006,0.5939,0.6285,0.6385],"gauss":[0.0856,0.2055,0.2992,0.3638,0.3899,0.4154,0.2561,0.2693,0.2729,0.2899,0.3111,0.3262,0.3209,0.3593,0.3625],"star":[-0.2078,0.1026,0.2253,0.4049,0.4279,0.4505,0.489,0.5061,0.5115,0.5453,0.576,0.6055,0.6016,0.635,0.6464]},"benchpress":{"k":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"mf":[-0.012,0.1492,0.1674,0.231,0.2336,0.2602,0.2862,0.2854,0.2851,0.2975,0.3246,0.3888,0.4178,0.4293,0.4622],"gauss":[-0.1095,-0.072,-0.2198,-0.2489,-0.2386,-0.2498,-0.194,-0.2418,-0.2296,-0.1938,-0.1995,-0.0947,-0.0588,-0.0704,-0.0253],"star":[-0.0468,0.1139,0.1244,0.1982,0.204,0.2382,0.2696,0.2651,0.2638,0.2811,0.3097,0.3864,0.419,0.4287,0.4687]}};
   var RT = [{"rows":16,"legacy":0.0421237989794462,"mf":0.0197654869407415,"speedup":2.1},{"rows":32,"legacy":0.0691015131305903,"mf":0.0197460029739886,"speedup":3.5},{"rows":64,"legacy":0.1294001138303429,"mf":0.0181074209976941,"speedup":7.1},{"rows":128,"legacy":0.2366087569389492,"mf":0.0192534530069679,"speedup":12.3},{"rows":256,"legacy":0.5148160869721323,"mf":0.0197554540354758,"speedup":26.1},{"rows":512,"legacy":1.2686091370414945,"mf":0.0244588200002908,"speedup":51.9},{"rows":1024,"legacy":4.167187005048618,"mf":0.038937872974202,"speedup":107.0}];
 
   // ===== Results charts =====
   (function () {
     var CAUS = {
-      methods: ["MatrixFormer", "SDiD", "HyperImpute", "SoftImpute", "SC", "K-NN", "DiD"],
+      methods: ["MatrixFormer*", "SDiD", "HyperImpute", "SoftImpute", "SC", "K-NN", "DiD"],
       rmse: { "California smoking": [.159, .212, .374, .456, .653, .730, .721], "CPS": [.177, .215, .538, .340, .742, .628, .812], "Kansas": [.093, .127, .104, .487, .185, .579, .736] },
       tau: { "California smoking": [.323, .363, .324, .455, .435, .485, .637], "CPS": [.305, .322, .518, .450, .480, .549, .606], "Kansas": [.125, .178, .119, .522, .243, .602, .745] }
     };
     var REC = {
-      methods: ["MatrixFormer", "SVD", "PMF", "UserKNN", "ItemKNN", "BPR"],
-      ml: { RMSE: [.8874, .8998, .9138, .9382, .9944, 2.2267], MAE: [.7279, .7430, .7534, .7681, .8242, 2.0143] },
-      nf: { RMSE: [.8617, .8621, .8835, .9296, .9502, 1.6980], MAE: [.7330, .7358, .7594, .7920, .8160, 1.5121] }
+      methods: ["MatrixFormer", "MatrixFormer*", "SVD", "PMF", "UserKNN", "ItemKNN", "BPR"],
+      ml: { RMSE: [0.8926, .8874, .8998, .9138, .9382, .9944, 2.2267], MAE: [0.7330, .7279, .7430, .7534, .7681, .8242, 2.0143] },
+      nf: { RMSE: [0.8666, .8617, .8621, .8835, .9296, .9502, 1.6980], MAE: [0.7364, .7330, .7358, .7594, .7920, .8160, 1.5121] }
     };
     var LLM_NAMES = { mteb: "MTEB", mmlu: "MMLU", merged: "Merged", benchpress: "BenchPress" };
 
@@ -1468,6 +1486,8 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       return t;
     }
     function fmt(v, d) { return v.toFixed(d); }
+    function hlOf(name) { return name === "MatrixFormer" ? 1 : name === "MatrixFormer*" ? 2 : 0; }
+    function hlFill(h) { return h === 1 ? "var(--mf)" : h === 2 ? "var(--mf2)" : "var(--base)"; }
     function barPath(x0, x1, y, h) {
       var r = Math.min(4, Math.max(0, x1 - x0), h / 2);
       return "M" + x0 + "," + y + "H" + (x1 - r) + "Q" + x1 + "," + y + " " + x1 + "," + (y + r) + "V" + (y + h - r) + "Q" + x1 + "," + (y + h) + " " + (x1 - r) + "," + (y + h) + "H" + x0 + "Z";
@@ -1493,7 +1513,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       rows.forEach(function (r, i) {
         var y = top + i * rowH, cy = y + rowH / 2, g = S("g", {}, svg);
         var bg = S("rect", { x: 0, y: y, width: W, height: rowH, rx: 4, style: "fill:transparent" }, g);
-        S("path", { d: barPath(X(0), X(r.v), cy - bh / 2, bh), style: "fill:" + (r.hl ? "var(--mf)" : "var(--base)") }, g);
+        S("path", { d: barPath(X(0), X(r.v), cy - bh / 2, bh), style: "fill:" + hlFill(r.hl) }, g);
         if (r.lo != null) {
           var ws = "stroke:var(--text);stroke-width:1.25;opacity:.55";
           S("line", { x1: X(r.lo), x2: X(r.hi), y1: cy, y2: cy, style: ws }, g);
@@ -1532,8 +1552,8 @@ completed = model.<span class="tk-f">impute</span>(matrix)
           S("path", { d: "M" + (ex - 9) + "," + (cy - 5) + "L" + ex + "," + cy + "L" + (ex - 9) + "," + (cy + 5) + "Z", style: "fill:var(--base)" }, g);
           S("text", { x: ex + 6, y: cy + 4, "class": "val" }, g).textContent = r.v.toFixed(2);
         } else {
-          S("circle", { cx: X(r.v), cy: cy, r: 6, style: "fill:" + (r.hl ? "var(--mf)" : "var(--base)") + ";stroke:var(--surface);stroke-width:2" }, g);
-          if (r.hl || o.labelAll) S("text", { x: X(r.v), y: cy - 10, "text-anchor": "middle", "class": "val" + (r.hl ? " hl" : "") }, g).textContent = r.v.toFixed(4);
+          S("circle", { cx: X(r.v), cy: cy, r: 6, style: "fill:" + hlFill(r.hl) + ";stroke:var(--surface);stroke-width:2" }, g);
+          if (r.hl || o.labelAll) S("text", { x: X(r.v) + 10, y: cy + 4, "class": "val" + (r.hl ? " hl" : "") }, g).textContent = r.v.toFixed(4);
         }
         g.addEventListener("mousemove", function (e) { bg.style.fill = "var(--hl-row)"; showTip(e, "<b>" + r.label + "</b><br>" + o.metric + ": <b>" + r.v.toFixed(4) + "</b>" + (off ? "<br>Off the zoomed scale" : "")); });
         g.addEventListener("mouseleave", function () { bg.style.fill = "transparent"; hideTip(); });
@@ -1557,7 +1577,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       if (o.xLabel) S("text", { x: m.l + pw / 2, y: H - 2, "text-anchor": "middle" }, svg).textContent = o.xLabel;
       o.series.forEach(function (s) {
         var d = s.y.map(function (v, i) { return (i ? "L" : "M") + X(xs[i]).toFixed(1) + "," + Y(v).toFixed(1); }).join("");
-        S("path", { d: d, style: "fill:none;stroke:" + s.color + ";stroke-width:2;stroke-linejoin:round;stroke-linecap:round" }, svg);
+        S("path", { d: d, style: "fill:none;stroke:" + s.color + ";stroke-width:2;stroke-linejoin:round;stroke-linecap:round" + (s.dash ? ";stroke-dasharray:5 4" : "") }, svg);
         var li = s.y.length - 1;
         S("circle", { cx: X(xs[li]), cy: Y(s.y[li]), r: 4, style: "fill:" + s.color + ";stroke:var(--surface);stroke-width:2" }, svg);
         if (o.endLabels) S("text", { x: X(xs[li]) + 8, y: Y(s.y[li]) + 4, "class": "val" }, svg).textContent = o.fmtEnd(s.y[li]);
@@ -1582,7 +1602,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
     var st = { suite: "missbench", pat: "overall", metric: "rmse", rec: "ml" };
     var PAT_NAMES = { overall: "All mechanisms", MCAR: "MCAR", MAR: "MAR", MNAR: "MNAR" };
     function renderImp() {
-      var rows = IMP[st.suite][st.pat].map(function (r) { return { label: r[0], v: r[1], lo: r[2], hi: r[3], dag: r[4], hl: r[0] === "MatrixFormer" }; });
+      var rows = IMP[st.suite][st.pat].map(function (r) { return { label: r[0], v: r[1], lo: r[2], hi: r[3], dag: r[4], hl: hlOf(r[0]) }; });
       document.getElementById("impTitle").textContent = (st.suite === "uci" ? "UCI" : "MissBench") + " · " + PAT_NAMES[st.pat] + " · NRMSE";
       hbars(document.getElementById("impChart"), rows, { dec: 3, metric: "NRMSE" });
       table(document.getElementById("impTable"), ["Method", "NRMSE", "95% low", "95% high"],
@@ -1594,7 +1614,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       Object.keys(data).forEach(function (bench) {
         var wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
         t.className = "panel-title"; t.textContent = bench; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
-        var rows = CAUS.methods.map(function (mth, i) { return { label: mth, v: data[bench][i], hl: mth === "MatrixFormer" }; });
+        var rows = CAUS.methods.map(function (mth, i) { return { label: mth, v: data[bench][i], hl: hlOf(mth) }; });
         hbars(c, rows, { dec: 3, max: 1, labelW: 96, metric: "Normalized score" });
       });
       CAUS.methods.forEach(function (mth, i) { trows.push([mth].concat(Object.keys(data).map(function (b) { return data[b][i].toFixed(3); }))); });
@@ -1606,7 +1626,7 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       ["RMSE", "MAE"].forEach(function (metric) {
         var wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
         t.className = "panel-title"; t.textContent = metric; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
-        var rows = REC.methods.map(function (mth, i) { return { label: mth, v: d[metric][i], hl: mth === "MatrixFormer" }; });
+        var rows = REC.methods.map(function (mth, i) { return { label: mth, v: d[metric][i], hl: hlOf(mth) }; });
         dots(c, rows, { min: ax[metric][0], max: ax[metric][1], ticks: ax[metric][2], metric: metric });
       });
       table(document.getElementById("recTable"), ["Method", "RMSE", "MAE"], REC.methods.map(function (mth, i) { return [mth, d.RMSE[i].toFixed(4), d.MAE[i].toFixed(4)]; }));
@@ -1616,19 +1636,19 @@ completed = model.<span class="tk-f">impute</span>(matrix)
       Object.keys(LLM_NAMES).forEach(function (key) {
         var d = LLM[key], wrap = document.createElement("div"), t = document.createElement("div"), c = document.createElement("div");
         t.className = "panel-title"; t.textContent = LLM_NAMES[key]; wrap.appendChild(t); wrap.appendChild(c); host.appendChild(wrap);
-        var all = d.mf.concat(d.gauss), lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+        var all = d.mf.concat(d.star, d.gauss), lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
         var step = (hi - lo) > 0.6 ? 0.2 : (hi - lo) > 0.25 ? 0.1 : 0.05;
         var yMin = Math.floor(lo / step) * step, yMax = Math.ceil(hi / step) * step, yt = [];
         for (var v = yMin; v <= yMax + 1e-9; v += step) yt.push(+v.toFixed(2));
         lines(c, {
           x: d.k, xTicks: [1, 5, 10, 15], xLabel: "tasks revealed, k", yMin: yMin, yMax: yMax, yTicks: yt, height: 190,
           fmtY: function (v) { return Math.abs(v) < 1e-9 ? "0" : v.toFixed(step < 0.1 ? 2 : 1); },
-          series: [{ color: "var(--mf)", y: d.mf }, { color: "var(--alt)", y: d.gauss }],
-          tip: function (i) { return tipRows(LLM_NAMES[key] + " · k = " + d.k[i], [["var(--mf)", "MatrixFormer", d.mf[i].toFixed(4)], ["var(--alt)", "Gaussian", d.gauss[i].toFixed(4)]]); }
+          series: [{ color: "var(--mf2)", y: d.star, dash: true }, { color: "var(--alt)", y: d.gauss }, { color: "var(--mf)", y: d.mf }],
+          tip: function (i) { return tipRows(LLM_NAMES[key] + " · k = " + d.k[i], [["var(--mf)", "MatrixFormer", d.mf[i].toFixed(4)], ["var(--mf2)", "MatrixFormer*", d.star[i].toFixed(4)], ["var(--alt)", "Gaussian", d.gauss[i].toFixed(4)]]); }
         });
-        [4, 9, 14].forEach(function (i) { trows.push([LLM_NAMES[key], d.k[i], d.mf[i].toFixed(4), d.gauss[i].toFixed(4)]); });
+        [4, 9, 14].forEach(function (i) { trows.push([LLM_NAMES[key], d.k[i], d.mf[i].toFixed(4), d.star[i].toFixed(4), d.gauss[i].toFixed(4)]); });
       });
-      table(document.getElementById("llmTable"), ["Dataset", "k", "MatrixFormer R²", "Gaussian R²"], trows);
+      table(document.getElementById("llmTable"), ["Dataset", "k", "MatrixFormer R²", "MatrixFormer* R²", "Gaussian R²"], trows);
     }
     function renderRT() {
       var xs = RT.map(function (r) { return r.rows; });
@@ -1637,9 +1657,9 @@ completed = model.<span class="tk-f">impute</span>(matrix)
         xLabel: "rows (10 columns)", fmtY: function (v) { return v >= 1 ? v + " s" : v + " s"; },
         fmtEnd: function (v) { return v >= 1 ? v.toFixed(2) + " s" : v.toFixed(3) + " s"; },
         series: [{ color: "var(--mf)", y: RT.map(function (r) { return r.mf; }) }, { color: "var(--alt)", y: RT.map(function (r) { return r.legacy; }) }],
-        tip: function (i) { var r = RT[i]; return tipRows(r.rows + " rows × 10 columns", [["var(--mf)", "MatrixFormer-Impute", r.mf.toFixed(4) + " s"], ["var(--alt)", "TabImpute", r.legacy.toFixed(3) + " s"]]) + "<div>Speedup: <b>" + r.speedup + "×</b></div>"; }
+        tip: function (i) { var r = RT[i]; return tipRows(r.rows + " rows × 10 columns", [["var(--mf)", "MatrixFormer", r.mf.toFixed(4) + " s"], ["var(--alt)", "TabImpute", r.legacy.toFixed(3) + " s"]]) + "<div>Speedup: <b>" + r.speedup + "×</b></div>"; }
       });
-      table(document.getElementById("rtTable"), ["Rows", "TabImpute (s)", "MatrixFormer-Impute (s)", "Speedup"],
+      table(document.getElementById("rtTable"), ["Rows", "TabImpute (s)", "MatrixFormer (s)", "Speedup"],
         RT.map(function (r) { return [r.rows, r.legacy.toFixed(4), r.mf.toFixed(4), r.speedup + "×"]; }));
     }
     function bindTabs(id, key, fn) {
@@ -1668,9 +1688,9 @@ completed = model.<span class="tk-f">impute</span>(matrix)
     mg.style.flexBasis = (100 - p) + "%"; ms.style.flexBasis = p + "%";
     mg.textContent = p < 90 ? "general " + (100 - p) + "%" : "";
     ms.textContent = p > 10 ? "specialist " + p + "%" : "";
-    wcap.innerHTML = p === 0 ? "w = 0: only the general expert's predictions are used."
+    wcap.innerHTML = p === 0 ? "w = 0: only the general network's predictions are used."
       : p === 100 ? "w = 1: only the specialist's predictions are used."
-      : "Both experts contribute. MatrixFormer+ reports the fitted weight in <code>model.last_decision[\"specialist_weight\"]</code>.";
+      : "Both networks contribute. MatrixFormer* reports the fitted weight in <code>model.last_decision[\"specialist_weight\"]</code>.";
   }
   w.addEventListener("input", upd); upd();
 
