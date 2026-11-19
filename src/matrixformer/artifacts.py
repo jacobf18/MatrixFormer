@@ -22,52 +22,40 @@ def verify_file(path, expected_sha256):
         raise ValueError(f"SHA-256 mismatch for {path}; remove this file and download it again")
 
 
-def resolve_experts(names, *, local_dir=None, cache_dir=None, local_files_only=False):
+def resolve_checkpoint(*, local_dir=None, cache_dir=None, local_files_only=False):
     metadata = manifest()
-    resolved = {}
-    for name in names:
-        spec = metadata["experts"][name]
-        paths = {}
-        for kind in ("config", "checkpoint"):
-            if local_dir is not None:
-                path = Path(local_dir) / spec[kind]
-                if not path.is_file():
-                    raise FileNotFoundError(
-                        f"Missing artifact: {path}. Run "
-                        f"`matrixformer --download-only --local-dir {local_dir}` first."
-                    )
-            else:
-                path = Path(hf_hub_download(
-                    metadata["repo_id"], spec[kind], revision=metadata["revision"],
-                    cache_dir=cache_dir, local_files_only=local_files_only,
-                ))
-            verify_file(path, spec[f"{kind}_sha256"])
-            paths[kind] = path
-        resolved[name] = paths
-    return resolved
+    spec = metadata["model"]
+    paths = {}
+    for kind in ("config", "checkpoint"):
+        if local_dir is not None:
+            path = Path(local_dir) / spec[kind]
+            if not path.is_file():
+                raise FileNotFoundError(
+                    f"Missing artifact: {path}. Run "
+                    f"`matrixformer --download-only --local-dir {local_dir}` first."
+                )
+        else:
+            path = Path(hf_hub_download(
+                metadata["repo_id"], spec[kind], revision=metadata["revision"],
+                cache_dir=cache_dir, local_files_only=local_files_only,
+            ))
+        verify_file(path, spec[f"{kind}_sha256"])
+        paths[kind] = path
+    return paths
 
 
-def download_checkpoints(local_dir=None, *, model="matrixformer", cache_dir=None):
-    """Download and verify the frozen artifacts; no authentication is required.
+def download_checkpoints(local_dir=None, *, cache_dir=None):
+    """Download the single checkpoint and config, verifying both file hashes.
 
-    With local_dir, preserve the Hugging Face matrixformer/ directory layout for
-    subsequent offline loading. Otherwise use the Hub cache. model is
-    "matrixformer", "impute", "recsys", or "plus"/"ensemble" for MatrixFormer*.
+    A local bundle contains config.json and best_validation_checkpoint.pth
+    directly at its root. Without local_dir, use the Hugging Face cache.
     """
-    expert_names = {
-        "matrixformer": ("matrixformer",), "impute": ("impute",), "recsys": ("recsys",),
-        "plus": ("impute", "recsys"), "ensemble": ("impute", "recsys"),
-    }
-    if model not in expert_names:
-        raise ValueError("model must be 'matrixformer', 'impute', 'recsys', 'plus', or 'ensemble'")
-    names = expert_names[model]
     if local_dir is None:
-        return resolve_experts(names, cache_dir=cache_dir)
+        return resolve_checkpoint(cache_dir=cache_dir)
     metadata = manifest()
-    for name in names:
-        for kind in ("config", "checkpoint"):
-            hf_hub_download(
-                metadata["repo_id"], metadata["experts"][name][kind],
-                revision=metadata["revision"], local_dir=local_dir,
-            )
-    return resolve_experts(names, local_dir=local_dir)
+    for kind in ("config", "checkpoint"):
+        hf_hub_download(
+            metadata["repo_id"], metadata["model"][kind],
+            revision=metadata["revision"], local_dir=local_dir,
+        )
+    return resolve_checkpoint(local_dir=local_dir)

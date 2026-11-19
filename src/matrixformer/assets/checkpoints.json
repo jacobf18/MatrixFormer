@@ -1,27 +1,15 @@
 {
-  "repo_id": "Tabimpute/TabImpute",
-  "revision": "9c24f63ce5973b1a7fd694485b20ab4d6973be17",
+  "repo_id": "Tabimpute/MatrixFormer",
+  "revision": "4991727bdefa24bb0acd9cd7cfa29d8577b6e8f6",
   "source_repository": "https://github.com/jacobf18/tabular",
-  "source_revision": "2cf54ac47dbcc1154b35e875b527ed0c42a9f416",
+  "architecture_source_revision": "2cf54ac47dbcc1154b35e875b527ed0c42a9f416",
   "borders_sha256": "5599c231bc5eebc583b946acb22d44803ac5e3171efcc2dba10b704deef6ee96",
-  "experts": {
-    "matrixformer": {
-      "checkpoint": "matrixformer/best_validation_checkpoint.pth",
-      "checkpoint_sha256": "0d0ecb1c61be86e63a2b959004f858fd9ab80fbc71e934fed439eac0c1039f49",
-      "config": "matrixformer/config.json",
-      "config_sha256": "4d9f0e56d57fda7a4d7077ef2ece91c80ae206542ecc585fe919b93892c0a48b"
-    },
-    "impute": {
-      "checkpoint": "matrixformer/impute/best_validation_checkpoint.pth",
-      "checkpoint_sha256": "c0ddf75274c8ff92ca5fd22c1263369ffa7e55eb7cb85fe80961b0afa101f7a9",
-      "config": "matrixformer/impute/config.json",
-      "config_sha256": "6981d286ef02b2c9261a8433ffb46a48a7fc68c65838e16895c6ad5888e7b07b"
-    },
-    "recsys": {
-      "checkpoint": "matrixformer/recsys/best_validation_checkpoint.pth",
-      "checkpoint_sha256": "1fcadc0c5846f9c35fbbae4e3b519b9244b608272cb1eda68c0850132321f770",
-      "config": "matrixformer/recsys/config.json",
-      "config_sha256": "b9201e53abbb6f6c7cc1e1699d4fe8fead48208f28a979c32e46f40431a9f6be"
-    }
+  "additional_training_matrices": 250000,
+  "continuation_optimizer_updates": 62500,
+  "model": {
+    "checkpoint": "best_validation_checkpoint.pth",
+    "checkpoint_sha256": "933850d7941afe58e5bdf838424ec7160cef9764fbcb26c6462c61c5648a3859",
+    "config": "config.json",
+    "config_sha256": "4d9f0e56d57fda7a4d7077ef2ece91c80ae206542ecc585fe919b93892c0a48b"
   }
 }

@@ -4,13 +4,13 @@ Fill missing entries in numerical matrices with a pretrained transformer.
 MatrixFormer is a single network trained on a mix of synthetic imputation,
 structured-missingness, and rating priors. Supply a 2D NumPy array with
 `np.nan` for missing entries. The output preserves observed entries exactly.
-You do not need to train or fine-tune the model. Two specialized models and
-their ensemble, MatrixFormer\*, are also available.
+You do not need to train or fine-tune the model. This release contains one
+MatrixFormer checkpoint, about 312 MB.
 
-This is a standalone, inference-only repository. All model, streaming,
-normalization, and blending code lives here. It does not import `tabimpute`,
-depend on the `tabular` repository, or contain datasets, training jobs, or
-benchmark infrastructure.
+This is a standalone repository. All model, streaming, normalization, and
+decoding code lives here, with optional [synthetic training](TRAINING.md).
+It does not import `tabimpute`, depend on the `tabular` repository, or contain
+evaluation datasets or benchmark infrastructure.
 
 - [Project page](https://jacobf18.github.io/MatrixFormer/)
 - [Hugging Face weights and configs](https://huggingface.co/Tabimpute/MatrixFormer)
@@ -21,7 +21,7 @@ benchmark infrastructure.
 You need Git, Python 3.10 or newer, and internet access for installation and the
 first model download. A GPU and a Hugging Face account are optional. Allow disk
 space for PyTorch and its dependencies as well as about 312 MB for the default
-model (624 MB if you also use the MatrixFormer\* ensemble).
+model.
 
 Here is a CPU-only setup for Linux, using an isolated virtual environment:
 
@@ -58,22 +58,27 @@ Install from this repository with `python -m pip install .`, rather than assumin
 the package is available on PyPI. Use `python -m pip install -e .` instead if
 editing the code. After installation, you can run it from any directory.
 
-## Choose a Model
+## One Model
 
-| Model | Python class | CLI option | Weights |
-| --- | --- | --- | --- |
-| MatrixFormer | `MatrixFormer` | `--model matrixformer` (default) | One network, about 312 MB |
+Use `MatrixFormer.from_pretrained()` or the default CLI. Weights and the minimal
+config are stored directly at the root of `Tabimpute/MatrixFormer`.
 
-MatrixFormer is the default: one network trained on mixed synthetic priors.
-MatrixFormer-Impute and MatrixFormer-RecSys are the two specialists, and
-MatrixFormer\* blends them with one weight fitted per matrix. MatrixFormer\* was
-previously called MatrixFormer+; the `MatrixFormerPlus` class and
-`--model plus` keep working under that former name. See
-[Models and the MatrixFormer\* Blend](#models-and-the-matrixformer-blend) for how
-the default compares with the ensemble on benchmarks. The Hugging Face
-repository is named `Tabimpute/TabImpute` for historical reasons; the
-MatrixFormer files are under its `matrixformer/` directory. There is no
-separate MatrixFormer\* checkpoint.
+## Training
+
+To train a single MatrixFormer from random initialization using the packaged
+synthetic prior:
+
+```bash
+python -m pip install -e ".[training]"
+python -m matrixformer.training --output runs/matrixformer --device cuda
+```
+
+The prior combines scientific panels, spectral/latent-factor imputation tasks,
+sparse ratings, and score panels. Training uses synthetic targets only, with
+Huber, density, and CDF losses. The trainer includes independent synthetic
+validation, resumable checkpoints, and gradient-safe microbatching. See
+[TRAINING.md](TRAINING.md) for the recipe, memory controls, and a small CPU smoke
+run. Training is optional; pretrained inference needs no training dependencies.
 
 ## Python
 
@@ -99,7 +104,7 @@ original units happen internally. Reuse the model object for multiple matrices.
 
 When `local_dir` is omitted, `MatrixFormer.from_pretrained()` automatically
 downloads the model (about 312 MB of weights) and its matching config from
-[Tabimpute/TabImpute on Hugging Face](https://huggingface.co/Tabimpute/TabImpute).
+[Tabimpute/MatrixFormer on Hugging Face](https://huggingface.co/Tabimpute/MatrixFormer).
 The CLI does the same by default; no model paths or separate download step are
 needed. Downloads use a pinned release and are checked against SHA-256 hashes
 before loading. The models are public; no token is required. A Hub warning may
@@ -116,55 +121,6 @@ is `amp_bfloat16`, matching the published inference recipe. The CPU quick start
 explicitly uses `precision="float32"` for compatibility; use this also on GPUs
 without BF16 support. Precision and hardware can affect predictions. The device
 defaults to CPU even when a GPU is available.
-
-The two specialists are also available individually. The imputation specialist:
-
-```python
-from matrixformer import MatrixFormerImpute
-
-model = MatrixFormerImpute.from_pretrained(device="cpu", precision="float32")
-completed = model.impute(matrix)
-```
-
-Each specialist downloads only its own checkpoint, about 312 MB.
-
-The recommender specialist:
-
-```python
-from matrixformer import MatrixFormerRecSys
-
-model = MatrixFormerRecSys.from_pretrained(device="cpu", precision="float32")
-completed = model.impute(matrix)
-```
-
-`MatrixFormerRecSys` uses the same generic column normalization as the other classes,
-not the paper's rating recipe of user/item bias centering and shrunk user
-scales, so its rating predictions differ from the paper's recommender results.
-
-The MatrixFormer\* ensemble downloads and runs both specialists:
-
-```python
-from matrixformer import MatrixFormerPlus
-
-model = MatrixFormerPlus.from_pretrained(device="cpu", precision="float32")
-completed = model.impute(matrix)
-print(model.last_decision)
-```
-
-### Understanding the Blend Output
-
-After calling `impute`, `model.last_decision` describes the MatrixFormer\* blend:
-
-- `specialist_weight`: the recommender model's weight, from 0 (general only) to
-  1 (specialist only). Intermediate values blend both predictions.
-- `general_mse` and `specialist_mse`: column-standardized reconstruction errors
-  on visible entries, not test errors or errors in the original units.
-- `evidence_cells`: the number of observed entries used to choose the weight.
-- `selected`: the expert with the lower individual reconstruction error. This
-  label does not replace the blend; `specialist_weight` determines the output.
-
-`MatrixFormer`, `MatrixFormerImpute`, and `MatrixFormerRecSys` each use one network
-and have no `last_decision` attribute.
 
 ## Prepare Your Data
 
@@ -224,8 +180,7 @@ print(completed)
 ```
 
 For a BF16-capable NVIDIA GPU, use `--device cuda` and optionally omit
-`--precision float32` to use BF16. Add `--model impute` or `--model recsys` to run
-a specialist, or `--model ensemble` for MatrixFormer\*. Relative input, output,
+`--precision float32` to use BF16. Relative input, output,
 cache, and checkpoint paths are relative to your current working directory, not
 the repository directory.
 
@@ -265,24 +220,15 @@ completed = model.impute(matrix)
 ```
 
 `local_dir` is read-only during inference and makes no network requests. Its
-value must be the bundle root (`checkpoints/` here), not a `.pth` file or the
-inner `matrixformer/` directory. Its layout is:
+value must be the bundle root (`checkpoints/` here), not a `.pth` file. Its layout is:
 
 ```text
 checkpoints/
-  matrixformer/
-    config.json                       MatrixFormer
-    best_validation_checkpoint.pth
-    impute/                           MatrixFormer-Impute (and MatrixFormer*)
-      config.json
-      best_validation_checkpoint.pth
-    recsys/                           MatrixFormer-RecSys (and MatrixFormer*)
-      config.json
-      best_validation_checkpoint.pth
+  config.json
+  best_validation_checkpoint.pth
 ```
 
-The default download contains only the top-level MatrixFormer files. The
-specialist folders appear when you download those models.
+Old bundles do not match the new checkpoint; download this release before offline use.
 
 Alternatively, download to the default Hub cache with
 `python -m matrixformer --download-only`, then use `local_files_only=True` in Python or
@@ -291,9 +237,7 @@ own architecture code and decoder-bin constants. No files from another source
 checkout are needed, including when running offline.
 
 If you set `cache_dir` or `--cache-dir` while downloading, use the same setting
-when loading offline. Pass the same `--model` option to both download and
-inference: `--model impute`, `--model recsys`, or `--model ensemble`, which
-downloads both specialists. A bundle runs only the models it contains.
+when loading offline.
 
 ## Context and Memory
 
@@ -316,7 +260,7 @@ requirements but can change predictions.
 Attention batches, feed-forward cells, and decoder outputs are streamed in
 microbatches without shortening attention within a context window. The hidden
 grid still stays on the selected device. Large windows require substantial
-memory, and MatrixFormer\* keeps both specialist networks loaded. Start with the small CPU demo;
+memory for the hidden grid and the single network. Start with the small CPU demo;
 use a GPU for larger matrices.
 
 ## Troubleshooting
@@ -327,54 +271,33 @@ use a GPU for larger matrices.
 | CUDA unavailable or BF16 unsupported | Use `--device cpu --precision float32`, or install a CUDA-enabled PyTorch build compatible with your GPU and driver. On older CUDA GPUs use `--precision float32`. |
 | Download fails or offline cache is empty | The first run needs access to Hugging Face. Prepare the bundle in [Offline Use](#offline-use) on a connected machine. A token is not required for these public weights. |
 | `Missing artifact` with `--local-dir` | Download the bundle first and pass its root directory. Inference with `--local-dir` never downloads missing files. |
-| Out of memory | Try smaller windows, such as `--max-rows 128 --max-cols 64`. MatrixFormer\* needs memory for two networks; the default and the specialists load one. Windows can change predictions; weight memory is still required. |
+| Out of memory | Try smaller windows, such as `--max-rows 128 --max-cols 64`. Only one network is loaded. Windows can change predictions; weight memory is still required. |
 | JSON prints but no completed file appears | Pass `--output completed.npy`; load it with `np.load`. JSON contains diagnostics, not the completed array. |
 
-## Models and the MatrixFormer\* Blend
+## Selected Checkpoint and Evaluation
 
-All four models share the Dwip v2-2 architecture: 77,998,496 parameters per
-network, trained only on synthetic matrices and frozen at inference.
+MatrixFormer has 77,998,496 parameters, eight row/column attention blocks, width
+768, 16 heads, 12 context tokens and 5,000 output bins. Point predictions use the
+distributional mean and the standard matrix orientation.
 
-MatrixFormer, the default, is one network trained on a mixture of synthetic
-imputation, structured-missingness, and rating priors (mixture weights 0.50,
-0.25, and 0.25), with teacher supervision during training only. It needs one
-forward pass and half the weight memory of MatrixFormer\*. On the public
-benchmarks reported on its
-[Hugging Face model card](https://huggingface.co/Tabimpute/TabImpute/blob/main/matrixformer/README.md),
-it is close to MatrixFormer\* but slightly worse on most of them, and better on
-the two sparsest language-model benchmark matrices:
+| Benchmark | MatrixFormer NRMSE |
+| --- | ---: |
+| MissBench | 1.256252 |
+| UCI | 1.285373 |
 
-| Benchmark | Metric | MatrixFormer | MatrixFormer\* |
-| --- | --- | ---: | ---: |
-| MissBench | NRMSE (lower is better) | 1.612 | 1.580 |
-| UCI | NRMSE (lower is better) | 1.017 | 0.998 |
-| MovieLens 100K | RMSE (lower is better) | 0.893 | 0.887 |
-| MovieLens 10M | RMSE (lower is better) | 0.838 | 0.833 |
-| MTEB | R² (higher is better) | 0.749 | 0.750 |
-| Merged | R² (higher is better) | 0.436 | 0.412 |
-| BenchPress | R² (higher is better) | 0.315 | 0.303 |
+These results cover 2,091 MissBench and 3,058 UCI cases.
+Seeds, rates and patterns are averaged within each dataset before datasets are
+weighted equally. The frozen primary metric uses **held-out-truth column SD**.
+Separately saved observed-column-SD NRMSE is 4.000035 for MissBench and
+1.045013 for UCI; these definitions are not interchangeable. Selection
+used earlier UCI/MissBench monitoring, so these are not untouched holdout tests.
+RecSys and causal evaluations of these weights were pending at release.
 
-These are descriptive results on previously inspected benchmarks, not
-significance tests. Use MatrixFormer\* when the extra accuracy matters more than
-running two networks.
-
-MatrixFormer\* runs the imputation and recommender specialists, then fits
-one specialist weight between zero and one for the entire input matrix. The
-criterion is column-standardized squared reconstruction error on observed
-entries. `last_decision["specialist_weight"]` records that weight.
-
-The fitting step uses raw model predictions on observed entries, rather than
-copying their targets into the loss. Those entries are also visible to the
-encoder, so this is an in-sample criterion, not a held-out accuracy estimate.
-No hidden ground-truth values are supplied, no neural network parameters are
-updated, and there is no separate MatrixFormer\* checkpoint.
-
-This package implements the generic column-normalized recipe. It does not yet
-include the benchmark-specific preprocessing that produced the paper's rating
-tables: global normalization for the general expert, two-way centering and user
-scaling for the specialist, rating clipping, and different context limits.
-Loading these weights with the generic recipe does not reproduce every paper
-result. Evaluation datasets and benchmark runners are intentionally excluded.
+Input normalization uses observed values only. Ground-truth values are used only
+for evaluation scoring, never to normalize inference inputs. The generic wrapper
+does not implement rating-specific bias centering, user-residual scaling or
+clipping. Benchmark masks, preprocessing and context settings must also match to
+reproduce benchmark results. No evaluation datasets or runners are included here.
 
 Observed values must be exactly representable as float64; lossy integer or
 extended-precision conversions are rejected rather than silently changing them.
@@ -390,26 +313,24 @@ pyproject.toml             Package metadata and three runtime dependencies
 src/matrixformer/
   __init__.py              Public API
   __main__.py              CLI and synthetic demo
-  imputer.py               Input handling and observed-error blending
+  imputer.py               Input handling and single-network inference
   artifacts.py             Pinned downloads and checksum verification
-  _model.py                Frozen transformer architecture
+  _model.py                Shared transformer architecture
   _inference.py            Streaming and predictive-mean decoding
+  training/                Synthetic priors, loss, and standalone trainer
   assets/checkpoints.json  Release hashes and provenance
   assets/borders.pt        Small decoder-bin constants, not a dataset
 ```
 
-The runtime was extracted from the published `tabular` source revision
-`2cf54ac47dbcc1154b35e875b527ed0c42a9f416`. Training-only paths and unused model
-variants were removed. The checkpoint keys and inference arithmetic retain the
-released architecture. `assets/checkpoints.json` pins Hugging Face release
-`9c24f63ce5973b1a7fd694485b20ab4d6973be17` and identifies MatrixFormer and both
-specialists. The specialist files are unchanged from the original release.
+The inference runtime was extracted from the published `tabular` source revision
+`2cf54ac47dbcc1154b35e875b527ed0c42a9f416`. The checkpoint keys and inference
+arithmetic retain the released architecture. `assets/checkpoints.json` pins Hugging Face release
+`4991727bdefa24bb0acd9cd7cfa29d8577b6e8f6` and identifies the selected
+final MatrixFormer checkpoint and its minimal config.
 
-CPU validation matches the published runtime exactly on 16 synthetic cases
-across BF16 autocast and float32, including window overlaps, missing axes, and
-streaming boundaries. An installed wheel also passes offline inference with
-network access and unrelated imports blocked. These are implementation checks,
-not benchmark accuracy claims; GPU parity has not been tested in this extraction.
+The release is checked by strict state-dictionary loading, exact safetensors
+conversion and CPU inference with observed entries and input arrays preserved.
+These are implementation checks, not benchmark accuracy claims.
 
 ## Citation
 

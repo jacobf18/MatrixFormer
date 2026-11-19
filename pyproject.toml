@@ -4,26 +4,31 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "matrixformer"
-version = "0.2.0"
-description = "Frozen MatrixFormer inference for numerical matrix completion"
+version = "0.3.0"
+description = "MatrixFormer inference and synthetic training for numerical matrix completion"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24",
     "torch>=2.4,<3",
-    "huggingface-hub>=0.27,<2",
+    "huggingface-hub>=0.27,<3",
 ]
+
+[project.optional-dependencies]
+training = ["scipy>=1.10"]
 
 [project.urls]
 Repository = "https://github.com/jacobf18/MatrixFormer"
-Checkpoints = "https://huggingface.co/Tabimpute/TabImpute"
+Checkpoints = "https://huggingface.co/Tabimpute/MatrixFormer"
 Paper = "https://arxiv.org/abs/2610.06751"
 
 [project.scripts]
 matrixformer = "matrixformer.__main__:main"
+matrixformer-train = "matrixformer.training.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 matrixformer = ["assets/*.pt", "assets/*.json"]
+"matrixformer.training" = ["components.json"]

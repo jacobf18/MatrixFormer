@@ -6,9 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import (
-    MatrixFormer, MatrixFormerImpute, MatrixFormerPlus, MatrixFormerRecSys, download_checkpoints,
-)
+from . import MatrixFormer, download_checkpoints
 from .imputer import prepare_matrix
 
 
@@ -16,12 +14,6 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Frozen MatrixFormer matrix completion",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument(
-        "--model", choices=("matrixformer", "impute", "recsys", "ensemble", "plus"),
-        default="matrixformer",
-        help="MatrixFormer (matrixformer), a single specialist (impute or recsys), or the "
-        "MatrixFormer* ensemble of both specialists (ensemble; plus is the former name)",
     )
     parser.add_argument(
         "--input", type=Path,
@@ -75,7 +67,7 @@ def parse_args():
 def main():
     args = parse_args()
     if args.download_only:
-        paths = download_checkpoints(args.local_dir, model=args.model, cache_dir=args.cache_dir)
+        paths = download_checkpoints(args.local_dir, cache_dir=args.cache_dir)
         print(json.dumps(paths, default=str, indent=2))
         return
     if args.input is None:
@@ -85,11 +77,7 @@ def main():
     else:
         matrix = np.load(args.input, allow_pickle=False)
     matrix = prepare_matrix(matrix)
-    factory = {
-        "matrixformer": MatrixFormer, "impute": MatrixFormerImpute, "recsys": MatrixFormerRecSys,
-        "ensemble": MatrixFormerPlus, "plus": MatrixFormerPlus,
-    }[args.model]
-    model = factory.from_pretrained(
+    model = MatrixFormer.from_pretrained(
         device=args.device, precision=args.precision, max_rows=args.max_rows or None,
         max_cols=args.max_cols or None, local_dir=args.local_dir, cache_dir=args.cache_dir,
         local_files_only=args.local_files_only,
@@ -100,13 +88,11 @@ def main():
         np.save(args.output, completed, allow_pickle=False)
     observed = np.isfinite(matrix)
     report = {
-        "model": args.model, "device": args.device, "precision": args.precision,
+        "model": "MatrixFormer", "device": args.device, "precision": args.precision,
         "shape": list(matrix.shape), "missing_entries": int(np.isnan(matrix).sum()),
         "all_predictions_finite": bool(np.isfinite(completed).all()),
         "observed_entries_preserved": bool(np.array_equal(completed[observed], matrix[observed])),
     }
-    if args.model in ("ensemble", "plus"):
-        report["blend_decision"] = model.last_decision
     if args.output is not None:
         report["output"] = str(args.output)
     print(json.dumps(report, indent=2))

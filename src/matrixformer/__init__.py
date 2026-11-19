@@ -1,10 +1,7 @@
-"""Self-contained inference for the frozen MatrixFormer models."""
+"""Self-contained inference for the single pretrained MatrixFormer model."""
 
 from .artifacts import download_checkpoints
-from .imputer import MatrixFormer, MatrixFormerImpute, MatrixFormerPlus, MatrixFormerRecSys
+from .imputer import MatrixFormer
 
-__all__ = [
-    "MatrixFormer", "MatrixFormerImpute", "MatrixFormerRecSys", "MatrixFormerPlus",
-    "download_checkpoints",
-]
-__version__ = "0.2.0"
+__all__ = ["MatrixFormer", "download_checkpoints"]
+__version__ = "0.3.0"

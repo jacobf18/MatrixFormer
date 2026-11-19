@@ -119,7 +119,7 @@ class Expert:
         ):
             return streamed_predictions(self.model, values, self.bucket_means)
 
-    def impute(self, matrix, *, return_full=False):
+    def impute(self, matrix):
         matrix = np.asarray(matrix, dtype=np.float64)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -131,7 +131,6 @@ class Expert:
             raise ValueError("Column normalization overflowed; rescale the observed values")
         normalized = (matrix - means) / (scales + 1e-16)
         totals = np.zeros_like(normalized)
-        raw_totals = np.zeros_like(normalized) if return_full else None
         counts = np.zeros(matrix.shape, dtype=np.uint8)
         for row_start, row_stop in overlapping_spans(matrix.shape[0], self.max_rows):
             for col_start, col_stop in overlapping_spans(matrix.shape[1], self.max_cols):
@@ -142,11 +141,7 @@ class Expert:
                 ).unsqueeze(0)
                 predictions = self.predict(values)[0].cpu().numpy()
                 totals[selection] += np.where(np.isnan(block), predictions, block)
-                if return_full:
-                    raw_totals[selection] += predictions
                 counts[selection] += 1
         completed = (totals / counts) * (scales + 1e-16) + means
         completed[np.isfinite(matrix)] = matrix[np.isfinite(matrix)]
-        if return_full:
-            return completed, (raw_totals / counts) * (scales + 1e-16) + means
         return completed

@@ -1,7 +1,6 @@
-"""Inference architecture with state-dict names matching the released experts.
+"""Shared architecture with state-dict names matching the released MatrixFormer.
 
-Only the frozen Dwip v2-2 configuration is supported. Training-only paths,
-attention diagnostics, and unused absolute position embeddings are omitted.
+Inference and gradient-safe training use separate streaming forward functions.
 """
 
 import torch
