@@ -13,7 +13,7 @@ depend on the `tabular` repository, or contain datasets, training jobs, or
 benchmark infrastructure.
 
 - [Project page](https://jacobf18.github.io/MatrixFormer/)
-- [Hugging Face weights and configs]([https://huggingface.co/Tabimpute/TabImpute](https://huggingface.co/Tabimpute/MatrixFormer))
+- [Hugging Face weights and configs](https://huggingface.co/Tabimpute/TabImpute](https://huggingface.co/Tabimpute/MatrixFormer))
 - [Paper](https://arxiv.org/abs/2610.06751)
 
 ## Install and First Run
