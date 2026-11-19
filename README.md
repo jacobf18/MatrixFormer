@@ -63,9 +63,6 @@ editing the code. After installation, you can run it from any directory.
 | Model | Python class | CLI option | Weights |
 | --- | --- | --- | --- |
 | MatrixFormer | `MatrixFormer` | `--model matrixformer` (default) | One network, about 312 MB |
-| MatrixFormer-Impute | `MatrixFormerImpute` | `--model impute` | Imputation specialist, about 312 MB |
-| MatrixFormer-RecSys | `MatrixFormerRecSys` | `--model recsys` | Recommender specialist, about 312 MB |
-| MatrixFormer\* | `MatrixFormerPlus` | `--model ensemble` | Both specialists, about 624 MB |
 
 MatrixFormer is the default: one network trained on mixed synthetic priors.
 MatrixFormer-Impute and MatrixFormer-RecSys are the two specialists, and
